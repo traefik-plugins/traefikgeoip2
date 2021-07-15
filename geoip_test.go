@@ -25,7 +25,7 @@ func TestGeoIPConfig(t *testing.T) {
 	_, err = mw.New(context.TODO(), nil, mwCfg, "")
 	if err.Error() != "geoip db Makefile not initialized: invalid metadata type: 3" {
 		t.Fatalf("Incorrect error: %v", err)
-	}s
+	}
 }
 
 // type HTTPHandlerMock struct {
