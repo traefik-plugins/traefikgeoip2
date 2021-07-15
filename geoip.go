@@ -91,25 +91,23 @@ func (mw *TraefikGeoIP2) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	city := Unknown
 
 	ip := net.ParseIP(req.RemoteAddr)
-	if ip != nil {
-		if mw.cityReader != nil {
-			rec, err := mw.cityReader.Lookup(ip)
-			if err != nil {
-				log.Printf("Error retrieving GeoIP for %v, %v", ip, err)
-			} else {
-				country = rec.Country.ISOCode
-				city = rec.City.Names["en"]
-				if rec.Subdivisions != nil {
-					region = rec.Subdivisions[0].Names["en"]
-				}
+	if ip != nil && mw.cityReader != nil {
+		rec, err := mw.cityReader.Lookup(ip)
+		if err != nil {
+			log.Printf("Error retrieving GeoIP for %v, %v", ip, err)
+		} else {
+			country = rec.Country.ISOCode
+			city = rec.City.Names["en"]
+			if rec.Subdivisions != nil {
+				region = rec.Subdivisions[0].Names["en"]
 			}
-		} else if mw.countryReader != nil {
-			rec, err := mw.countryReader.Lookup(ip)
-			if err != nil {
-				log.Printf("Error retrieving GeoIP for %v, %v", ip, err)
-			} else {
-				country = rec.Country.ISOCode
-			}
+		}
+	} else if ip != nil && mw.countryReader != nil {
+		rec, err := mw.countryReader.Lookup(ip)
+		if err != nil {
+			log.Printf("Error retrieving GeoIP for %v, %v", ip, err)
+		} else {
+			country = rec.Country.ISOCode
 		}
 	}
 
