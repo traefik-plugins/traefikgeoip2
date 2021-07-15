@@ -4,23 +4,29 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	mw "github.com/GiGInnovationLabs/traefik-geoip2"
 )
 
-// func TestGeoIPConfig(t *testing.T) {
-// 	mwCfg := mw.CreateConfig()
-// 	assert.Equal(t, mw.DefaultDBPath, mwCfg.DBPath)
+func TestGeoIPConfig(t *testing.T) {
+	mwCfg := mw.CreateConfig()
+	if mw.DefaultDBPath != mwCfg.DBPath {
+		t.Fatalf("Incorrect path")
+	}
 
-// 	_, err := mw.New(context.TODO(), nil, mwCfg, "")
-// 	assert.Error(t, err)
-// 	assert.Contains(t, err.Error(), mw.DefaultDBPath)
+	_, err := mw.New(context.TODO(), nil, mwCfg, "")
+	if err == nil || !strings.Contains(err.Error(), mw.DefaultDBPath) {
+		t.Fatalf("Error is empty or incorrect %v", err)
+	}
 
-// 	mwCfg.DBPath = "Makefile"
-// 	_, err = mw.New(context.TODO(), nil, mwCfg, "")
-// 	assert.EqualError(t, err, "geoip db Makefile not initialized: invalid metadata type: 3")
-// }
+	mwCfg.DBPath = "Makefile"
+	_, err = mw.New(context.TODO(), nil, mwCfg, "")
+	if err.Error() != "geoip db Makefile not initialized: invalid metadata type: 3" {
+		t.Fatalf("Incorrect error: %v", err)
+	}s
+}
 
 // type HTTPHandlerMock struct {
 // 	mock.Mock
