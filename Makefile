@@ -11,7 +11,7 @@ test:
 	go test -v -cover ./...
 
 yaegi_test:
-	yaegi test -v -unsafe .	
+	yaegi test -v -unsafe -syscall .	
 
 vendor:
 	go mod vendor
