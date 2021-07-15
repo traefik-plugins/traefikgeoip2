@@ -49,14 +49,14 @@ type TraefikGeoIP2 struct {
 // New created a new TraefikGeoIP2 plugin.
 func New(ctx context.Context, next http.Handler, cfg *Config, name string) (http.Handler, error) {
 	if _, err := os.Stat(cfg.DBPath); err != nil {
-		log.Printf("GeoIP DB not found: %s\n %v", name, err)
-		return nil, fmt.Errorf("geoip db not found: %s %w", name, err)
+		log.Printf("GeoIP DB not found: %s\n %v", cfg.DBPath, err)
+		return nil, fmt.Errorf("geoip db not found: %s %w", cfg.DBPath, err)
 	}
 
 	rdr, err := geoip2.Open(cfg.DBPath)
 	if err != nil {
-		log.Printf("GeoIP DB %s not initialized: %v", name, err)
-		return nil, fmt.Errorf("geoip db %s not initialized: %w", name, err)
+		log.Printf("GeoIP DB %s not initialized: %v", cfg.DBPath, err)
+		return nil, fmt.Errorf("geoip db %s not initialized: %w", cfg.DBPath, err)
 	}
 
 	return &TraefikGeoIP2{
