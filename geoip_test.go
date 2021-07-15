@@ -28,41 +28,36 @@ func TestGeoIPConfig(t *testing.T) {
 	}
 }
 
-// type HTTPHandlerMock struct {
-// 	mock.Mock
-// }
+func TestGeoIPBasic(t *testing.T) {
+	mwCfg := mw.CreateConfig()
+	mwCfg.DBPath = "./GeoLite2-City.mmdb"
 
-// func (handler *HTTPHandlerMock) ServeHTTP(wr http.ResponseWriter, req *http.Request) {
-// 	handler.Called(wr, req)
-// }
+	called := false
+	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) { called = true })
 
-// func TestGeoIPBasic(t *testing.T) {
-// 	mwCfg := mw.CreateConfig()
-// 	mwCfg.DBPath = "./GeoLite2-City.mmdb"
+	instance, err := mw.New(context.TODO(), next, mwCfg, "traefik-geoip2")
+	if err != nil {
+		t.Fatalf("Error creating %v", err)
+	}
 
-// 	ctx := context.Background()
-// 	next := new(HTTPHandlerMock)
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 
-// 	instance, err := mw.New(ctx, next, mwCfg, "traefik-geoip2")
-// 	assert.NoError(t, err)
-
-// 	recorder := httptest.NewRecorder()
-// 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-
-// 	next.On("ServeHTTP", mock.Anything, mock.Anything).Return()
-
-// 	instance.ServeHTTP(recorder, req)
-// 	assert.Equal(t, recorder.Result().StatusCode, 200)
-
-// 	next.AssertCalled(t, "ServeHTTP", mock.Anything, mock.Anything)
-// }
+	instance.ServeHTTP(recorder, req)
+	if recorder.Result().StatusCode != http.StatusOK {
+		t.Fatalf("Invalid return code")
+	}
+	if called != true {
+		t.Fatalf("next handler was not called")
+	}
+}
 
 func TestGeoIPFromRemoteAddr(t *testing.T) {
 	mwCfg := mw.CreateConfig()
 	mwCfg.DBPath = "./GeoLite2-City.mmdb"
 
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
-	instance, _ := mw.New(context.Background(), next, mwCfg, "traefik-geoip2")
+	instance, _ := mw.New(context.TODO(), next, mwCfg, "traefik-geoip2")
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 	req.RemoteAddr = "95.67.102.233"
@@ -84,7 +79,7 @@ func TestGeoIPCountryDBFromRemoteAddr(t *testing.T) {
 	mwCfg.DBPath = "./GeoLite2-Country.mmdb"
 
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
-	instance, _ := mw.New(context.Background(), next, mwCfg, "traefik-geoip2")
+	instance, _ := mw.New(context.TODO(), next, mwCfg, "traefik-geoip2")
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 	req.RemoteAddr = "95.67.102.233"
