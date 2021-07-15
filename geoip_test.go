@@ -84,15 +84,9 @@ func TestGeoIPCountryDBFromRemoteAddr(t *testing.T) {
 	req.RemoteAddr = "95.67.102.233"
 	instance.ServeHTTP(httptest.NewRecorder(), req)
 
-	if req.Header.Get(mw.CountryHeader) != "UA" {
-		t.Errorf("Country is not UA")
-	}
-	if req.Header.Get(mw.RegionHeader) != mw.Unknown {
-		t.Errorf("Region is not Unknown")
-	}
-	if req.Header.Get(mw.CityHeader) != mw.Unknown {
-		t.Errorf("City is not Unknown")
-	}
+	assertHeader(t, req, mw.CountryHeader, "UA")
+	assertHeader(t, req, mw.RegionHeader, mw.Unknown)
+	assertHeader(t, req, mw.CityHeader, mw.Unknown)
 }
 
 // func TestGeoIPFromXForwardedFrom(t *testing.T) {
@@ -119,3 +113,10 @@ func TestGeoIPCountryDBFromRemoteAddr(t *testing.T) {
 // 	assert.Equal(t, "XX", req.Header.Get(mw.RegionHeader))
 // 	assert.Equal(t, "XX", req.Header.Get(mw.CityHeader))
 // }
+
+func assertHeader(t *testing.T, req *http.Request, key, expected string) {
+	t.Helper()
+	if req.Header.Get(key) != expected {
+		t.Fatalf("invalid header %s != %s", key, req.Header.Get(key))
+	}
+}
