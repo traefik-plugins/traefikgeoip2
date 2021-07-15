@@ -24,6 +24,8 @@ jobs:
       # https://github.com/marketplace/actions/checkout
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          lfs: true
 
       # https://github.com/marketplace/actions/cache
       - name: Cache Go modules
