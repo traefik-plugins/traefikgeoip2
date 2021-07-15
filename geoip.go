@@ -8,8 +8,9 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 
-	"github.com/oschwald/geoip2-golang"
+	"github.com/IncSW/geoip2"
 )
 
 // DefaultDBPath default GeoIP2 database path.
@@ -41,9 +42,10 @@ func CreateConfig() *Config {
 
 // TraefikGeoIP2 a traefik geoip2 plugin.
 type TraefikGeoIP2 struct {
-	next   http.Handler
-	reader *geoip2.Reader
-	name   string
+	next          http.Handler
+	cityReader    *geoip2.CityReader
+	countryReader *geoip2.CountryReader
+	name          string
 }
 
 // New created a new TraefikGeoIP2 plugin.
@@ -53,16 +55,30 @@ func New(ctx context.Context, next http.Handler, cfg *Config, name string) (http
 		return nil, fmt.Errorf("geoip db not found: %s %w", cfg.DBPath, err)
 	}
 
-	rdr, err := geoip2.Open(cfg.DBPath)
+	if strings.Contains(cfg.DBPath, "City") {
+		cityReader, err := geoip2.NewCityReaderFromFile(cfg.DBPath)
+		if err != nil {
+			log.Printf("GeoIP DB %s not initialized: %v", cfg.DBPath, err)
+			return nil, fmt.Errorf("geoip db %s not initialized: %w", cfg.DBPath, err)
+		}
+		return &TraefikGeoIP2{
+			countryReader: nil,
+			cityReader:    cityReader,
+			next:          next,
+			name:          name,
+		}, nil
+	}
+
+	countryReader, err := geoip2.NewCountryReaderFromFile(cfg.DBPath)
 	if err != nil {
 		log.Printf("GeoIP DB %s not initialized: %v", cfg.DBPath, err)
 		return nil, fmt.Errorf("geoip db %s not initialized: %w", cfg.DBPath, err)
 	}
-
 	return &TraefikGeoIP2{
-		reader: rdr,
-		next:   next,
-		name:   name,
+		countryReader: countryReader,
+		cityReader:    nil,
+		next:          next,
+		name:          name,
 	}, nil
 }
 
@@ -76,19 +92,23 @@ func (mw *TraefikGeoIP2) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	ip := net.ParseIP(req.RemoteAddr)
 	if ip != nil {
-		rec, err := mw.reader.City(ip)
-		if err != nil {
-			log.Printf("Error retrieving GeoIP for %v, %v", ip, err)
-		} else {
-			country = rec.Country.IsoCode
-			if mw.reader.Metadata().DatabaseType == "GeoLite2-Country" {
-				region = Unknown
-				city = Unknown
+		if mw.cityReader != nil {
+			rec, err := mw.cityReader.Lookup(ip)
+			if err != nil {
+				log.Printf("Error retrieving GeoIP for %v, %v", ip, err)
 			} else {
+				country = rec.Country.ISOCode
 				city = rec.City.Names["en"]
 				if rec.Subdivisions != nil {
 					region = rec.Subdivisions[0].Names["en"]
 				}
+			}
+		} else if mw.countryReader != nil {
+			rec, err := mw.countryReader.Lookup(ip)
+			if err != nil {
+				log.Printf("Error retrieving GeoIP for %v, %v", ip, err)
+			} else {
+				country = rec.Country.ISOCode
 			}
 		}
 	}

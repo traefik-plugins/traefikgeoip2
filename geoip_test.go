@@ -21,7 +21,7 @@ func TestGeoIPConfig(t *testing.T) {
 
 	mwCfg.DBPath = "Makefile"
 	_, err = mw.New(context.TODO(), nil, mwCfg, "")
-	assert.EqualError(t, err, "geoip db Makefile not initialized: error opening database: invalid MaxMind DB file")
+	assert.EqualError(t, err, "geoip db Makefile not initialized: invalid metadata type: 3")
 }
 
 type HTTPHandlerMock struct {
