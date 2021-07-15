@@ -21,7 +21,7 @@ func TestGeoIPConfig(t *testing.T) {
 
 	mwCfg.DBPath = "Makefile"
 	_, err = mw.New(context.TODO(), nil, mwCfg, "")
-	assert.EqualError(t, err, "error opening database: invalid MaxMind DB file")
+	assert.EqualError(t, err, "geoip db  not initialized: error opening database: invalid MaxMind DB file")
 }
 
 type HTTPHandlerMock struct {
@@ -34,7 +34,7 @@ func (handler *HTTPHandlerMock) ServeHTTP(wr http.ResponseWriter, req *http.Requ
 
 func TestGeoIPBasic(t *testing.T) {
 	mwCfg := mw.CreateConfig()
-	mwCfg.DBPath = "./GeoIP2-City.mmdb"
+	mwCfg.DBPath = "./GeoLite2-City.mmdb"
 
 	ctx := context.Background()
 	next := new(HTTPHandlerMock)
@@ -55,7 +55,7 @@ func TestGeoIPBasic(t *testing.T) {
 
 func TestGeoIPFromRemoteAddr(t *testing.T) {
 	mwCfg := mw.CreateConfig()
-	mwCfg.DBPath = "./GeoIP2-City.mmdb"
+	mwCfg.DBPath = "./GeoLite2-City.mmdb"
 
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
 	instance, _ := mw.New(context.Background(), next, mwCfg, "traefik-geoip2")
@@ -70,16 +70,31 @@ func TestGeoIPFromRemoteAddr(t *testing.T) {
 	req = httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 	req.RemoteAddr = "qwerty"
 	instance.ServeHTTP(httptest.NewRecorder(), req)
-	assert.Equal(t, "XX", req.Header.Get(mw.CountryHeader))
-	assert.Equal(t, "XX", req.Header.Get(mw.RegionHeader))
-	assert.Equal(t, "XX", req.Header.Get(mw.CityHeader))
+	assert.Equal(t, mw.Unknown, req.Header.Get(mw.CountryHeader))
+	assert.Equal(t, mw.Unknown, req.Header.Get(mw.RegionHeader))
+	assert.Equal(t, mw.Unknown, req.Header.Get(mw.CityHeader))
+}
+
+func TestGeoIPCountryDBFromRemoteAddr(t *testing.T) {
+	mwCfg := mw.CreateConfig()
+	mwCfg.DBPath = "./GeoLite2-Country.mmdb"
+
+	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+	instance, _ := mw.New(context.Background(), next, mwCfg, "traefik-geoip2")
+
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req.RemoteAddr = "95.67.102.233"
+	instance.ServeHTTP(httptest.NewRecorder(), req)
+	assert.Equal(t, "UA", req.Header.Get(mw.CountryHeader))
+	assert.Equal(t, mw.Unknown, req.Header.Get(mw.RegionHeader))
+	assert.Equal(t, mw.Unknown, req.Header.Get(mw.CityHeader))
 }
 
 func TestGeoIPFromXForwardedFrom(t *testing.T) {
 	t.SkipNow()
 
 	mwCfg := mw.CreateConfig()
-	mwCfg.DBPath = "./GeoIP2-City.mmdb"
+	mwCfg.DBPath = "./GeoLite2-City.mmdb"
 
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
 	instance, _ := mw.New(context.Background(), next, mwCfg, "traefik-geoip2")

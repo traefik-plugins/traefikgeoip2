@@ -33,6 +33,7 @@
   enable-all = true
   disable = [
     "bodyclose",
+    "nestif",
     "goerr113",
     "nlreturn",
     "testpackage",

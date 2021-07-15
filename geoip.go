@@ -56,7 +56,7 @@ func New(ctx context.Context, next http.Handler, cfg *Config, name string) (http
 	rdr, err := geoip2.Open(cfg.DBPath)
 	if err != nil {
 		log.Printf("GeoIP DB %s not initialized: %v", name, err)
-		return nil, fmt.Errorf("geoup db %s not initialized: %w", name, err)
+		return nil, fmt.Errorf("geoip db %s not initialized: %w", name, err)
 	}
 
 	return &TraefikGeoIP2{
@@ -70,21 +70,25 @@ func (mw *TraefikGeoIP2) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	log.Printf("@@@@ addr: %v, realIp: %v, xForwFor: %v",
 		req.RemoteAddr, req.Header.Get("X-Real-Ip"), req.Header.Get("X-Forwarded-For"))
 
-	ip := net.ParseIP(req.RemoteAddr)
-
 	country := Unknown
 	region := Unknown
 	city := Unknown
 
+	ip := net.ParseIP(req.RemoteAddr)
 	if ip != nil {
 		rec, err := mw.reader.City(ip)
 		if err != nil {
 			log.Printf("Error retrieving GeoIP for %v, %v", ip, err)
 		} else {
 			country = rec.Country.IsoCode
-			city = rec.City.Names["en"]
-			if rec.Subdivisions != nil {
-				region = rec.Subdivisions[0].Names["en"]
+			if mw.reader.Metadata().DatabaseType == "GeoLite2-Country" {
+				region = Unknown
+				city = Unknown
+			} else {
+				city = rec.City.Names["en"]
+				if rec.Subdivisions != nil {
+					region = rec.Subdivisions[0].Names["en"]
+				}
 			}
 		}
 	}
