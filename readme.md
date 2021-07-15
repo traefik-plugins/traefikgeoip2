@@ -36,7 +36,7 @@ http:
         - geoip
 
   services:
-   service-foo:
+    service-foo:
       loadBalancer:
         servers:
           - url: http://127.0.0.1:5000
@@ -48,3 +48,11 @@ http:
           dbPath: /var/lib/traefik-geoip2/GeoLite2-Country.mmdb
 ```
 
+## Development
+
+To run linter and tests - execute
+
+```sh
+make prepare
+make
+```
