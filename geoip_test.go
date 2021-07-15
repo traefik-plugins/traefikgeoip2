@@ -90,30 +90,23 @@ func TestGeoIPCountryDBFromRemoteAddr(t *testing.T) {
 	assertHeader(t, req, mw.CityHeader, mw.Unknown)
 }
 
-// func TestGeoIPFromXForwardedFrom(t *testing.T) {
-// 	t.SkipNow()
+func TestGeoIPFromXForwardedFrom(t *testing.T) {
+	t.SkipNow()
 
-// 	mwCfg := mw.CreateConfig()
-// 	mwCfg.DBPath = "./GeoLite2-City.mmdb"
+	mwCfg := mw.CreateConfig()
+	mwCfg.DBPath = "./GeoLite2-City.mmdb"
 
-// 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
-// 	instance, _ := mw.New(context.Background(), next, mwCfg, "traefik-geoip2")
+	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+	instance, _ := mw.New(context.Background(), next, mwCfg, "traefik-geoip2")
 
-// 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-// 	req.RemoteAddr = "1.1.1.1"
-// 	req.Header.Set("X-Forwarded-For", "95.67.102.233")
-// 	instance.ServeHTTP(httptest.NewRecorder(), req)
-// 	assert.Equal(t, "UA", req.Header.Get(mw.CountryHeader))
-// 	assert.Equal(t, "Kyiv City", req.Header.Get(mw.RegionHeader))
-// 	assert.Equal(t, "Kyiv", req.Header.Get(mw.CityHeader))
-
-// 	req = httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-// 	req.RemoteAddr = "qwerty"
-// 	instance.ServeHTTP(httptest.NewRecorder(), req)
-// 	assert.Equal(t, "XX", req.Header.Get(mw.CountryHeader))
-// 	assert.Equal(t, "XX", req.Header.Get(mw.RegionHeader))
-// 	assert.Equal(t, "XX", req.Header.Get(mw.CityHeader))
-// }
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req.RemoteAddr = "1.1.1.1"
+	req.Header.Set("X-Forwarded-For", "95.67.102.233")
+	instance.ServeHTTP(httptest.NewRecorder(), req)
+	assertHeader(t, req, mw.CountryHeader, "UA")
+	assertHeader(t, req, mw.RegionHeader, "Kyiv City")
+	assertHeader(t, req, mw.CityHeader, "Kyiv")
+}
 
 func assertHeader(t *testing.T, req *http.Request, key, expected string) {
 	t.Helper()
