@@ -34,7 +34,6 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
         with:
-          lfs: true
           path: go/src/github.com/${{ github.repository }}
           fetch-depth: 0
 
@@ -67,7 +66,9 @@ jobs:
           # git diff --exit-code ./vendor/
 
       - name: Lint and Tests
-        run: make
+        run: |
+          make prepare
+          make
 
       - name: Run tests with Yaegi
         run: make yaegi_test

@@ -4,6 +4,9 @@ export GO111MODULE=on
 
 default: lint test
 
+prepare:
+	tar xvzf geolite2.tgz
+	
 lint:
 	golangci-lint run
 
