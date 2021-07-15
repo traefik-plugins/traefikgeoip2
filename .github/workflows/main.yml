@@ -67,10 +67,7 @@ jobs:
           # git diff --exit-code ./vendor/
 
       - name: Lint and Tests
-        run: |
-          ls -la
-          git lfs status
-          make
+        run: make
 
       - name: Run tests with Yaegi
         run: make yaegi_test

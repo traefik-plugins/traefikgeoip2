@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	mw "github.com/GiGInnovationLabs/traefik-geoip2"
-	"github.com/stretchr/testify/assert"
 )
 
 // func TestGeoIPConfig(t *testing.T) {
@@ -84,9 +83,16 @@ func TestGeoIPCountryDBFromRemoteAddr(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 	req.RemoteAddr = "95.67.102.233"
 	instance.ServeHTTP(httptest.NewRecorder(), req)
-	assert.Equal(t, "UA", req.Header.Get(mw.CountryHeader))
-	assert.Equal(t, mw.Unknown, req.Header.Get(mw.RegionHeader))
-	assert.Equal(t, mw.Unknown, req.Header.Get(mw.CityHeader))
+
+	if req.Header.Get(mw.CountryHeader) != "UA" {
+		t.Errorf("Country is not UA")
+	}
+	if req.Header.Get(mw.RegionHeader) != mw.Unknown {
+		t.Errorf("Region is not Unknown")
+	}
+	if req.Header.Get(mw.CityHeader) != mw.Unknown {
+		t.Errorf("City is not Unknown")
+	}
 }
 
 // func TestGeoIPFromXForwardedFrom(t *testing.T) {
