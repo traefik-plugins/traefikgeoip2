@@ -57,27 +57,27 @@ func TestGeoIPConfig(t *testing.T) {
 // 	next.AssertCalled(t, "ServeHTTP", mock.Anything, mock.Anything)
 // }
 
-// func TestGeoIPFromRemoteAddr(t *testing.T) {
-// 	mwCfg := mw.CreateConfig()
-// 	mwCfg.DBPath = "./GeoLite2-City.mmdb"
+func TestGeoIPFromRemoteAddr(t *testing.T) {
+	mwCfg := mw.CreateConfig()
+	mwCfg.DBPath = "./GeoLite2-City.mmdb"
 
-// 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
-// 	instance, _ := mw.New(context.Background(), next, mwCfg, "traefik-geoip2")
+	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+	instance, _ := mw.New(context.Background(), next, mwCfg, "traefik-geoip2")
 
-// 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-// 	req.RemoteAddr = "95.67.102.233"
-// 	instance.ServeHTTP(httptest.NewRecorder(), req)
-// 	assert.Equal(t, "UA", req.Header.Get(mw.CountryHeader))
-// 	assert.Equal(t, "Kyiv City", req.Header.Get(mw.RegionHeader))
-// 	assert.Equal(t, "Kyiv", req.Header.Get(mw.CityHeader))
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req.RemoteAddr = "95.67.102.233"
+	instance.ServeHTTP(httptest.NewRecorder(), req)
+	assertHeader(t, req, mw.CountryHeader, "UA")
+	assertHeader(t, req, mw.RegionHeader, "Kyiv City")
+	assertHeader(t, req, mw.CityHeader, "Kyiv")
 
-// 	req = httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-// 	req.RemoteAddr = "qwerty"
-// 	instance.ServeHTTP(httptest.NewRecorder(), req)
-// 	assert.Equal(t, mw.Unknown, req.Header.Get(mw.CountryHeader))
-// 	assert.Equal(t, mw.Unknown, req.Header.Get(mw.RegionHeader))
-// 	assert.Equal(t, mw.Unknown, req.Header.Get(mw.CityHeader))
-// }
+	req = httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req.RemoteAddr = "qwerty"
+	instance.ServeHTTP(httptest.NewRecorder(), req)
+	assertHeader(t, req, mw.CountryHeader, mw.Unknown)
+	assertHeader(t, req, mw.RegionHeader, mw.Unknown)
+	assertHeader(t, req, mw.CityHeader, mw.Unknown)
+}
 
 func TestGeoIPCountryDBFromRemoteAddr(t *testing.T) {
 	mwCfg := mw.CreateConfig()
