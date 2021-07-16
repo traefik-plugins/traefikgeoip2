@@ -1,5 +1,8 @@
 # Traefik GeoIP2 plugin
 
+Plugin for getting information from MaxMind geo database and pass it to request headers.
+Supports GeoIP2 and GeoLite2 databases.
+
 ## Usage
 
 ### Configuration
