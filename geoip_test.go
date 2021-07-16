@@ -10,6 +10,8 @@ import (
 	mw "github.com/GiGInnovationLabs/traefikgeoip2"
 )
 
+const ValidIP = "188.193.88.199"
+
 func TestGeoIPConfig(t *testing.T) {
 	mwCfg := mw.CreateConfig()
 	if mw.DefaultDBPath != mwCfg.DBPath {
@@ -61,11 +63,11 @@ func TestGeoIPFromRemoteAddr(t *testing.T) {
 	instance, _ := mw.New(context.TODO(), next, mwCfg, "traefik-geoip2")
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	req.RemoteAddr = "95.67.102.233"
+	req.RemoteAddr = ValidIP
 	instance.ServeHTTP(httptest.NewRecorder(), req)
-	assertHeader(t, req, mw.CountryHeader, "UA")
-	assertHeader(t, req, mw.RegionHeader, "Kyiv City")
-	assertHeader(t, req, mw.CityHeader, "Kyiv")
+	assertHeader(t, req, mw.CountryHeader, "DE")
+	assertHeader(t, req, mw.RegionHeader, "Bavaria")
+	assertHeader(t, req, mw.CityHeader, "Munich")
 
 	req = httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 	req.RemoteAddr = "qwerty"
@@ -83,17 +85,15 @@ func TestGeoIPCountryDBFromRemoteAddr(t *testing.T) {
 	instance, _ := mw.New(context.TODO(), next, mwCfg, "traefik-geoip2")
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	req.RemoteAddr = "95.67.102.233"
+	req.RemoteAddr = ValidIP
 	instance.ServeHTTP(httptest.NewRecorder(), req)
 
-	assertHeader(t, req, mw.CountryHeader, "UA")
+	assertHeader(t, req, mw.CountryHeader, "DE")
 	assertHeader(t, req, mw.RegionHeader, mw.Unknown)
 	assertHeader(t, req, mw.CityHeader, mw.Unknown)
 }
 
-func TestGeoIPFromXForwardedFrom(t *testing.T) {
-	t.SkipNow()
-
+func TestGeoIPFromXRealIP(t *testing.T) {
 	mwCfg := mw.CreateConfig()
 	mwCfg.DBPath = "./GeoLite2-City.mmdb"
 
@@ -102,11 +102,12 @@ func TestGeoIPFromXForwardedFrom(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 	req.RemoteAddr = "1.1.1.1"
-	req.Header.Set("X-Forwarded-For", "95.67.102.233")
+	req.Header.Set("X-Real-Ip", ValidIP)
+
 	instance.ServeHTTP(httptest.NewRecorder(), req)
-	assertHeader(t, req, mw.CountryHeader, "UA")
-	assertHeader(t, req, mw.RegionHeader, "Kyiv City")
-	assertHeader(t, req, mw.CityHeader, "Kyiv")
+	assertHeader(t, req, mw.CountryHeader, "DE")
+	assertHeader(t, req, mw.RegionHeader, "Bavaria")
+	assertHeader(t, req, mw.CityHeader, "Munich")
 }
 
 func assertHeader(t *testing.T, req *http.Request, key, expected string) {

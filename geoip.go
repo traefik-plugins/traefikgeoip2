@@ -13,21 +13,6 @@ import (
 	"github.com/IncSW/geoip2"
 )
 
-// DefaultDBPath default GeoIP2 database path.
-const DefaultDBPath = "GeoLite2-Country.mmdb"
-
-const (
-	// CountryHeader country header name.
-	CountryHeader = "X-GeoIP2-Country"
-	// RegionHeader region header name.
-	RegionHeader = "X-GeoIP2-Region"
-	// CityHeader city header name.
-	CityHeader = "X-GeoIP2-City"
-)
-
-// Unknown constant for undefined data.
-const Unknown = "XX"
-
 // Config the plugin configuration.
 type Config struct {
 	DBPath string `json:"dbPath,omitempty"`
@@ -83,23 +68,29 @@ func New(ctx context.Context, next http.Handler, cfg *Config, name string) (http
 }
 
 func (mw *TraefikGeoIP2) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	log.Printf("@@@@ remoteAddr: %v, xRealIp: %v, xForFor: %v",
-		req.RemoteAddr, req.Header.Get("X-Real-Ip"), req.Header.Get("X-Forwarded-For"))
+	log.Printf("@@@@ remoteAddr: %v, xRealIp: %v", req.RemoteAddr, req.Header.Get(RealIPHeader))
 
-	country := Unknown
-	region := Unknown
-	city := Unknown
+	retval := GeoIPResult{
+		country: Unknown,
+		region:  Unknown,
+		city:    Unknown,
+	}
 
-	ip := net.ParseIP(req.RemoteAddr)
+	ipStr := req.Header.Get(RealIPHeader)
+	if ipStr == "" {
+		ipStr = req.RemoteAddr
+	}
+
+	ip := net.ParseIP(ipStr)
 	if ip != nil && mw.cityReader != nil {
 		rec, err := mw.cityReader.Lookup(ip)
 		if err != nil {
 			log.Printf("Error retrieving GeoIP for %v, %v", ip, err)
 		} else {
-			country = rec.Country.ISOCode
-			city = rec.City.Names["en"]
+			retval.country = rec.Country.ISOCode
+			retval.city = rec.City.Names["en"]
 			if rec.Subdivisions != nil {
-				region = rec.Subdivisions[0].Names["en"]
+				retval.region = rec.Subdivisions[0].Names["en"]
 			}
 		}
 	} else if ip != nil && mw.countryReader != nil {
@@ -107,13 +98,11 @@ func (mw *TraefikGeoIP2) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			log.Printf("Error retrieving GeoIP for %v, %v", ip, err)
 		} else {
-			country = rec.Country.ISOCode
+			retval.country = rec.Country.ISOCode
 		}
 	}
 
-	req.Header.Set(CountryHeader, country)
-	req.Header.Set(RegionHeader, region)
-	req.Header.Set(CityHeader, city)
+	ApplyGeoIPResult(req, &retval)
 
 	mw.next.ServeHTTP(rw, req)
 }
