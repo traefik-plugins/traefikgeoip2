@@ -3,7 +3,6 @@ package traefikgeoip2
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -35,25 +34,31 @@ type TraefikGeoIP2 struct {
 // New created a new TraefikGeoIP2 plugin.
 func New(ctx context.Context, next http.Handler, cfg *Config, name string) (http.Handler, error) {
 	if _, err := os.Stat(cfg.DBPath); err != nil {
-		log.Printf("GeoIP DB not found: %s\n %v", cfg.DBPath, err)
-		return nil, fmt.Errorf("db `%s' not found: %w", cfg.DBPath, err)
+		log.Printf("GeoIP DB `%s' not found: %v", cfg.DBPath, err)
+		return &TraefikGeoIP2{
+			lookup: nil,
+			next:   next,
+			name:   name,
+		}, nil
 	}
 
 	var lookup LookupGeoIP2
 	if strings.Contains(cfg.DBPath, "City") {
 		rdr, err := geoip2.NewCityReaderFromFile(cfg.DBPath)
 		if err != nil {
-			log.Printf("GeoIP DB %s not initialized: %v", cfg.DBPath, err)
-			return nil, fmt.Errorf("db `%s' not initialized: %w", cfg.DBPath, err)
+			log.Printf("GeoIP DB `%s' not initialized: %v", cfg.DBPath, err)
+		} else {
+			lookup = CreateCityDBLookup(rdr)
 		}
-		lookup = CreateCityDBLookup(rdr)
-	} else {
+	}
+
+	if strings.Contains(cfg.DBPath, "Country") {
 		rdr, err := geoip2.NewCountryReaderFromFile(cfg.DBPath)
 		if err != nil {
-			log.Printf("GeoIP DB %s not initialized: %v", cfg.DBPath, err)
-			return nil, fmt.Errorf("db `%s' not initialized: %w", cfg.DBPath, err)
+			log.Printf("GeoIP DB `%s' not initialized: %v", cfg.DBPath, err)
+		} else {
+			lookup = CreateCountryDBLookup(rdr)
 		}
-		lookup = CreateCountryDBLookup(rdr)
 	}
 
 	return &TraefikGeoIP2{
@@ -65,6 +70,14 @@ func New(ctx context.Context, next http.Handler, cfg *Config, name string) (http
 
 func (mw *TraefikGeoIP2) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	log.Printf("@@@@ remoteAddr: %v, xRealIp: %v", req.RemoteAddr, req.Header.Get(RealIPHeader))
+
+	if mw.lookup == nil {
+		req.Header.Set(CountryHeader, Unknown)
+		req.Header.Set(RegionHeader, Unknown)
+		req.Header.Set(CityHeader, Unknown)
+		mw.next.ServeHTTP(rw, req)
+		return
+	}
 
 	ipStr := req.Header.Get(RealIPHeader)
 	if ipStr == "" {

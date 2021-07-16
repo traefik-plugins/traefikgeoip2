@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	mw "github.com/GiGInnovationLabs/traefikgeoip2"
@@ -23,14 +22,14 @@ func TestGeoIPConfig(t *testing.T) {
 
 	mwCfg.DBPath = "./non-existing"
 	_, err := mw.New(context.TODO(), nil, mwCfg, "")
-	if err == nil || !strings.Contains(err.Error(), "./non-existing") {
-		t.Fatalf("Error is empty or incorrect %v", err)
+	if err != nil {
+		t.Fatalf("Must not fail on missing DB")
 	}
 
 	mwCfg.DBPath = "Makefile"
 	_, err = mw.New(context.TODO(), nil, mwCfg, "")
-	if err.Error() != "db `Makefile' not initialized: invalid metadata type: 3" {
-		t.Fatalf("Incorrect error: %v", err)
+	if err != nil {
+		t.Fatalf("Must not fail on invalid DB format")
 	}
 }
 
@@ -56,6 +55,33 @@ func TestGeoIPBasic(t *testing.T) {
 	if called != true {
 		t.Fatalf("next handler was not called")
 	}
+}
+
+func TestMissingGeoIPDB(t *testing.T) {
+	mwCfg := mw.CreateConfig()
+	mwCfg.DBPath = "./missing"
+
+	called := false
+	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) { called = true })
+
+	instance, err := mw.New(context.TODO(), next, mwCfg, "traefik-geoip2")
+	if err != nil {
+		t.Fatalf("Error creating %v", err)
+	}
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+
+	instance.ServeHTTP(recorder, req)
+	if recorder.Result().StatusCode != http.StatusOK {
+		t.Fatalf("Invalid return code")
+	}
+	if called != true {
+		t.Fatalf("next handler was not called")
+	}
+	assertHeader(t, req, mw.CountryHeader, mw.Unknown)
+	assertHeader(t, req, mw.RegionHeader, mw.Unknown)
+	assertHeader(t, req, mw.CityHeader, mw.Unknown)
 }
 
 func TestGeoIPFromRemoteAddr(t *testing.T) {
