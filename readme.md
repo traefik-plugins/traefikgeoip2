@@ -48,7 +48,7 @@ http:
     my-plugin:
       plugin:
         geoip:
-          dbPath: /var/lib/traefik-geoip2/GeoLite2-Country.mmdb
+          dbPath: ./GeoLite2-Country.mmdb
 ```
 
 ## Development
