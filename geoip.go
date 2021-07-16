@@ -27,82 +27,66 @@ func CreateConfig() *Config {
 
 // TraefikGeoIP2 a traefik geoip2 plugin.
 type TraefikGeoIP2 struct {
-	next          http.Handler
-	cityReader    *geoip2.CityReader
-	countryReader *geoip2.CountryReader
-	name          string
+	next   http.Handler
+	lookup LookupGeoIP2
+	name   string
 }
 
 // New created a new TraefikGeoIP2 plugin.
 func New(ctx context.Context, next http.Handler, cfg *Config, name string) (http.Handler, error) {
 	if _, err := os.Stat(cfg.DBPath); err != nil {
 		log.Printf("GeoIP DB not found: %s\n %v", cfg.DBPath, err)
-		return nil, fmt.Errorf("geoip db not found: %s %w", cfg.DBPath, err)
+		return nil, fmt.Errorf("db `%s' not found: %w", cfg.DBPath, err)
+	}
+
+	retval := TraefikGeoIP2{
+		lookup: nil,
+		next:   next,
+		name:   name,
 	}
 
 	if strings.Contains(cfg.DBPath, "City") {
-		cityReader, err := geoip2.NewCityReaderFromFile(cfg.DBPath)
+		rdr, err := geoip2.NewCityReaderFromFile(cfg.DBPath)
 		if err != nil {
 			log.Printf("GeoIP DB %s not initialized: %v", cfg.DBPath, err)
-			return nil, fmt.Errorf("geoip db %s not initialized: %w", cfg.DBPath, err)
+			return nil, fmt.Errorf("db `%s' not initialized: %w", cfg.DBPath, err)
 		}
-		return &TraefikGeoIP2{
-			countryReader: nil,
-			cityReader:    cityReader,
-			next:          next,
-			name:          name,
-		}, nil
+		retval.lookup = CreateCityDBLookup(rdr)
+	} else {
+		rdr, err := geoip2.NewCountryReaderFromFile(cfg.DBPath)
+		if err != nil {
+			log.Printf("GeoIP DB %s not initialized: %v", cfg.DBPath, err)
+			return nil, fmt.Errorf("db `%s' not initialized: %w", cfg.DBPath, err)
+		}
+		retval.lookup = CreateCountryDBLookup(rdr)
 	}
 
-	countryReader, err := geoip2.NewCountryReaderFromFile(cfg.DBPath)
-	if err != nil {
-		log.Printf("GeoIP DB %s not initialized: %v", cfg.DBPath, err)
-		return nil, fmt.Errorf("geoip db %s not initialized: %w", cfg.DBPath, err)
-	}
-	return &TraefikGeoIP2{
-		countryReader: countryReader,
-		cityReader:    nil,
-		next:          next,
-		name:          name,
-	}, nil
+	return &retval, nil
 }
 
 func (mw *TraefikGeoIP2) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	log.Printf("@@@@ remoteAddr: %v, xRealIp: %v", req.RemoteAddr, req.Header.Get(RealIPHeader))
 
-	retval := GeoIPResult{
-		country: Unknown,
-		region:  Unknown,
-		city:    Unknown,
-	}
-
 	ipStr := req.Header.Get(RealIPHeader)
 	if ipStr == "" {
 		ipStr = req.RemoteAddr
-	}
-
-	ip := net.ParseIP(ipStr)
-	if ip != nil && mw.cityReader != nil {
-		rec, err := mw.cityReader.Lookup(ip)
-		if err != nil {
-			log.Printf("Error retrieving GeoIP for %v, %v", ip, err)
-		} else {
-			retval.country = rec.Country.ISOCode
-			retval.city = rec.City.Names["en"]
-			if rec.Subdivisions != nil {
-				retval.region = rec.Subdivisions[0].Names["en"]
-			}
-		}
-	} else if ip != nil && mw.countryReader != nil {
-		rec, err := mw.countryReader.Lookup(ip)
-		if err != nil {
-			log.Printf("Error retrieving GeoIP for %v, %v", ip, err)
-		} else {
-			retval.country = rec.Country.ISOCode
+		tmp, _, err := net.SplitHostPort(ipStr)
+		if err == nil {
+			ipStr = tmp
 		}
 	}
 
-	ApplyGeoIPResult(req, &retval)
+	res, err := mw.lookup(net.ParseIP(ipStr))
+	if err != nil {
+		log.Printf("Unable to find GeoIP data for `%s', %v", ipStr, err)
+		res = &GeoIPResult{
+			country: Unknown,
+			region:  Unknown,
+			city:    Unknown,
+		}
+	}
+
+	ApplyGeoIPResult(req, res)
 
 	mw.next.ServeHTTP(rw, req)
 }

@@ -10,7 +10,10 @@ import (
 	mw "github.com/GiGInnovationLabs/traefikgeoip2"
 )
 
-const ValidIP = "188.193.88.199"
+const (
+	ValidIP        = "188.193.88.199"
+	ValidIPAndPort = "188.193.88.199:9999"
+)
 
 func TestGeoIPConfig(t *testing.T) {
 	mwCfg := mw.CreateConfig()
@@ -26,7 +29,7 @@ func TestGeoIPConfig(t *testing.T) {
 
 	mwCfg.DBPath = "Makefile"
 	_, err = mw.New(context.TODO(), nil, mwCfg, "")
-	if err.Error() != "geoip db Makefile not initialized: invalid metadata type: 3" {
+	if err.Error() != "db `Makefile' not initialized: invalid metadata type: 3" {
 		t.Fatalf("Incorrect error: %v", err)
 	}
 }
@@ -63,14 +66,14 @@ func TestGeoIPFromRemoteAddr(t *testing.T) {
 	instance, _ := mw.New(context.TODO(), next, mwCfg, "traefik-geoip2")
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	req.RemoteAddr = ValidIP
+	req.RemoteAddr = ValidIPAndPort
 	instance.ServeHTTP(httptest.NewRecorder(), req)
 	assertHeader(t, req, mw.CountryHeader, "DE")
 	assertHeader(t, req, mw.RegionHeader, "Bavaria")
 	assertHeader(t, req, mw.CityHeader, "Munich")
 
 	req = httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	req.RemoteAddr = "qwerty"
+	req.RemoteAddr = "qwerty:9999"
 	instance.ServeHTTP(httptest.NewRecorder(), req)
 	assertHeader(t, req, mw.CountryHeader, mw.Unknown)
 	assertHeader(t, req, mw.RegionHeader, mw.Unknown)
@@ -85,7 +88,7 @@ func TestGeoIPCountryDBFromRemoteAddr(t *testing.T) {
 	instance, _ := mw.New(context.TODO(), next, mwCfg, "traefik-geoip2")
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	req.RemoteAddr = ValidIP
+	req.RemoteAddr = ValidIPAndPort
 	instance.ServeHTTP(httptest.NewRecorder(), req)
 
 	assertHeader(t, req, mw.CountryHeader, "DE")
@@ -101,7 +104,7 @@ func TestGeoIPFromXRealIP(t *testing.T) {
 	instance, _ := mw.New(context.Background(), next, mwCfg, "traefik-geoip2")
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	req.RemoteAddr = "1.1.1.1"
+	req.RemoteAddr = "1.1.1.1:9999"
 	req.Header.Set("X-Real-Ip", ValidIP)
 
 	instance.ServeHTTP(httptest.NewRecorder(), req)

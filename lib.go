@@ -1,6 +1,12 @@
 package traefikgeoip2
 
-import "net/http"
+import (
+	"fmt"
+	"net"
+	"net/http"
+
+	"github.com/IncSW/geoip2"
+)
 
 // Unknown constant for undefined data.
 const Unknown = "XX"
@@ -31,4 +37,42 @@ func ApplyGeoIPResult(req *http.Request, res *GeoIPResult) {
 	req.Header.Set(CountryHeader, res.country)
 	req.Header.Set(RegionHeader, res.region)
 	req.Header.Set(CityHeader, res.city)
+}
+
+// LookupGeoIP2 LookupGeoIP2.
+type LookupGeoIP2 func(ip net.IP) (*GeoIPResult, error)
+
+// CreateCityDBLookup CreateCityDBLookup.
+func CreateCityDBLookup(rdr *geoip2.CityReader) LookupGeoIP2 {
+	return func(ip net.IP) (*GeoIPResult, error) {
+		rec, err := rdr.Lookup(ip)
+		if err != nil {
+			return nil, fmt.Errorf("%w", err)
+		}
+		retval := GeoIPResult{
+			country: rec.Country.ISOCode,
+			region:  Unknown,
+			city:    rec.City.Names["en"],
+		}
+		if rec.Subdivisions != nil {
+			retval.region = rec.Subdivisions[0].Names["en"]
+		}
+		return &retval, nil
+	}
+}
+
+// CreateCountryDBLookup CreateCountryDBLookup.
+func CreateCountryDBLookup(rdr *geoip2.CountryReader) LookupGeoIP2 {
+	return func(ip net.IP) (*GeoIPResult, error) {
+		rec, err := rdr.Lookup(ip)
+		if err != nil {
+			return nil, fmt.Errorf("%w", err)
+		}
+		retval := GeoIPResult{
+			country: rec.Country.ISOCode,
+			region:  Unknown,
+			city:    Unknown,
+		}
+		return &retval, nil
+	}
 }

@@ -32,9 +32,8 @@
   enable-all = true
   disable = [
     "golint",
-    "wsl",
+    "wsl",  
     "bodyclose",
-    "nestif",
     "goerr113",
     "nlreturn",
     "testpackage",
