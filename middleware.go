@@ -39,29 +39,28 @@ func New(ctx context.Context, next http.Handler, cfg *Config, name string) (http
 		return nil, fmt.Errorf("db `%s' not found: %w", cfg.DBPath, err)
 	}
 
-	retval := TraefikGeoIP2{
-		lookup: nil,
-		next:   next,
-		name:   name,
-	}
-
+	var lookup LookupGeoIP2
 	if strings.Contains(cfg.DBPath, "City") {
 		rdr, err := geoip2.NewCityReaderFromFile(cfg.DBPath)
 		if err != nil {
 			log.Printf("GeoIP DB %s not initialized: %v", cfg.DBPath, err)
 			return nil, fmt.Errorf("db `%s' not initialized: %w", cfg.DBPath, err)
 		}
-		retval.lookup = CreateCityDBLookup(rdr)
+		lookup = CreateCityDBLookup(rdr)
 	} else {
 		rdr, err := geoip2.NewCountryReaderFromFile(cfg.DBPath)
 		if err != nil {
 			log.Printf("GeoIP DB %s not initialized: %v", cfg.DBPath, err)
 			return nil, fmt.Errorf("db `%s' not initialized: %w", cfg.DBPath, err)
 		}
-		retval.lookup = CreateCountryDBLookup(rdr)
+		lookup = CreateCountryDBLookup(rdr)
 	}
 
-	return &retval, nil
+	return &TraefikGeoIP2{
+		lookup: lookup,
+		next:   next,
+		name:   name,
+	}, nil
 }
 
 func (mw *TraefikGeoIP2) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
@@ -86,7 +85,9 @@ func (mw *TraefikGeoIP2) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	ApplyGeoIPResult(req, res)
+	req.Header.Set(CountryHeader, res.country)
+	req.Header.Set(RegionHeader, res.region)
+	req.Header.Set(CityHeader, res.city)
 
 	mw.next.ServeHTTP(rw, req)
 }

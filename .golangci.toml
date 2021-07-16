@@ -31,6 +31,9 @@
 [linters]
   enable-all = true
   disable = [
+    "scopelint",
+    "interfacer",
+    "maligned",
     "golint",
     "wsl",  
     "bodyclose",

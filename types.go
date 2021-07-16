@@ -3,7 +3,6 @@ package traefikgeoip2
 import (
 	"fmt"
 	"net"
-	"net/http"
 
 	"github.com/IncSW/geoip2"
 )
@@ -30,13 +29,6 @@ type GeoIPResult struct {
 	country string
 	region  string
 	city    string
-}
-
-// ApplyGeoIPResult ApplyGeoIPResult.
-func ApplyGeoIPResult(req *http.Request, res *GeoIPResult) {
-	req.Header.Set(CountryHeader, res.country)
-	req.Header.Set(RegionHeader, res.region)
-	req.Header.Set(CityHeader, res.city)
 }
 
 // LookupGeoIP2 LookupGeoIP2.

@@ -116,6 +116,6 @@ func TestGeoIPFromXRealIP(t *testing.T) {
 func assertHeader(t *testing.T, req *http.Request, key, expected string) {
 	t.Helper()
 	if req.Header.Get(key) != expected {
-		t.Fatalf("invalid header %s != %s", key, req.Header.Get(key))
+		t.Fatalf("invalid value of header [%s] != %s", key, req.Header.Get(key))
 	}
 }
