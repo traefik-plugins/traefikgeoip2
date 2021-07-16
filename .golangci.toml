@@ -28,10 +28,10 @@
     lines = 60 # default 60
     statements = 40 # default 40
 
-
 [linters]
   enable-all = true
   disable = [
+    "golint",
     "wsl",
     "bodyclose",
     "nestif",

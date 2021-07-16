@@ -1,4 +1,4 @@
-// Package traefikgeoip2 is a GeoIP2 plugin.
+// Package traefikgeoip2 is a Traefik plugin for Maxmind GeoIP2.
 package traefikgeoip2
 
 import (
@@ -83,7 +83,7 @@ func New(ctx context.Context, next http.Handler, cfg *Config, name string) (http
 }
 
 func (mw *TraefikGeoIP2) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	log.Printf("@@@@ addr: %v, realIp: %v, xForwFor: %v",
+	log.Printf("@@@@ remoteAddr: %v, xRealIp: %v, xForFor: %v",
 		req.RemoteAddr, req.Header.Get("X-Real-Ip"), req.Header.Get("X-Forwarded-For"))
 
 	country := Unknown

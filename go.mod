@@ -1,4 +1,4 @@
-module github.com/GiGInnovationLabs/traefik-geoip2
+module github.com/GiGInnovationLabs/traefikgeoip2
 
 go 1.15
 

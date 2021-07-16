@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	mw "github.com/GiGInnovationLabs/traefik-geoip2"
+	mw "github.com/GiGInnovationLabs/traefikgeoip2"
 )
 
 func TestGeoIPConfig(t *testing.T) {

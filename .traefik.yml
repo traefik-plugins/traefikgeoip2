@@ -4,7 +4,7 @@ summary: '[geoip2] Plugin for getting information from MaxMind GeoIP2 database a
 
 type: middleware
 
-import: github.com/GiGInnovationLabs/traefik-geoip2
+import: github.com/GiGInnovationLabs/traefikgeoip2
 
 testData:
   dbPath: "/var/lib/traefik-geoip2/GeoLite2-Country.mmdb"
