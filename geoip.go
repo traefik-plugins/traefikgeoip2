@@ -14,7 +14,7 @@ import (
 )
 
 // DefaultDBPath default GeoIP2 database path.
-const DefaultDBPath = "/var/lib/traefik-geoip2/GeoLite2-Country.mmdb"
+const DefaultDBPath = "./GeoLite2-Country.mmdb"
 
 const (
 	// CountryHeader country header name.

@@ -1,5 +1,5 @@
 .idea/
 .DS_Store
 *.code-workspace
-*.mmdb
+GeoLite2-City.mmdb
 

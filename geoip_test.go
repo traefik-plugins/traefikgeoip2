@@ -16,8 +16,9 @@ func TestGeoIPConfig(t *testing.T) {
 		t.Fatalf("Incorrect path")
 	}
 
+	mwCfg.DBPath = "./non-existing"
 	_, err := mw.New(context.TODO(), nil, mwCfg, "")
-	if err == nil || !strings.Contains(err.Error(), mw.DefaultDBPath) {
+	if err == nil || !strings.Contains(err.Error(), "./non-existing") {
 		t.Fatalf("Error is empty or incorrect %v", err)
 	}
 
