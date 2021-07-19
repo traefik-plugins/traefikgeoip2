@@ -18,9 +18,9 @@ pilot:
 
 experimental:
   plugins:
-    geoip:
+    geoip2:
       moduleName: github.com/GiGInnovationLabs/traefik-geoip2
-      version: v0.1.0
+      version: v0.1.1
 ```
 
 Here is an example of a file provider dynamic configuration (given here in YAML), where the interesting part is the `http.middlewares` section:
@@ -36,7 +36,7 @@ http:
       entryPoints:
         - web
       middlewares:
-        - geoip
+        - geoip2
 
   services:
     service-foo:
@@ -45,9 +45,9 @@ http:
           - url: http://127.0.0.1:5000
   
   middlewares:
-    my-plugin:
+    geoip2:
       plugin:
-        geoip:
+        geoip2:
           dbPath: ./GeoLite2-Country.mmdb
 ```
 
