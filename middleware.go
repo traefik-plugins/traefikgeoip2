@@ -34,7 +34,7 @@ type TraefikGeoIP2 struct {
 // New created a new TraefikGeoIP2 plugin.
 func New(ctx context.Context, next http.Handler, cfg *Config, name string) (http.Handler, error) {
 	if _, err := os.Stat(cfg.DBPath); err != nil {
-		log.Printf("GeoIP DB `%s' not found: %v", cfg.DBPath, err)
+		log.Printf("[geoip2] DB `%s' not found: %v", cfg.DBPath, err)
 		return &TraefikGeoIP2{
 			lookup: nil,
 			next:   next,
@@ -46,7 +46,7 @@ func New(ctx context.Context, next http.Handler, cfg *Config, name string) (http
 	if strings.Contains(cfg.DBPath, "City") {
 		rdr, err := geoip2.NewCityReaderFromFile(cfg.DBPath)
 		if err != nil {
-			log.Printf("GeoIP DB `%s' not initialized: %v", cfg.DBPath, err)
+			log.Printf("[geoip2] DB `%s' not initialized: %v", cfg.DBPath, err)
 		} else {
 			lookup = CreateCityDBLookup(rdr)
 		}
@@ -55,7 +55,7 @@ func New(ctx context.Context, next http.Handler, cfg *Config, name string) (http
 	if strings.Contains(cfg.DBPath, "Country") {
 		rdr, err := geoip2.NewCountryReaderFromFile(cfg.DBPath)
 		if err != nil {
-			log.Printf("GeoIP DB `%s' not initialized: %v", cfg.DBPath, err)
+			log.Printf("[geoip2] DB `%s' not initialized: %v", cfg.DBPath, err)
 		} else {
 			lookup = CreateCountryDBLookup(rdr)
 		}
@@ -69,7 +69,7 @@ func New(ctx context.Context, next http.Handler, cfg *Config, name string) (http
 }
 
 func (mw *TraefikGeoIP2) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	log.Printf("@@@@ remoteAddr: %v, xRealIp: %v", req.RemoteAddr, req.Header.Get(RealIPHeader))
+	log.Printf("[geoip2] remoteAddr: %v, xRealIp: %v", req.RemoteAddr, req.Header.Get(RealIPHeader))
 
 	if mw.lookup == nil {
 		req.Header.Set(CountryHeader, Unknown)
@@ -90,7 +90,7 @@ func (mw *TraefikGeoIP2) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	res, err := mw.lookup(net.ParseIP(ipStr))
 	if err != nil {
-		log.Printf("Unable to find GeoIP data for `%s', %v", ipStr, err)
+		log.Printf("[geoip2] Unable to find for `%s', %v", ipStr, err)
 		res = &GeoIPResult{
 			country: Unknown,
 			region:  Unknown,
