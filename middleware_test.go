@@ -95,7 +95,7 @@ func TestGeoIPFromRemoteAddr(t *testing.T) {
 	req.RemoteAddr = ValidIPAndPort
 	instance.ServeHTTP(httptest.NewRecorder(), req)
 	assertHeader(t, req, mw.CountryHeader, "DE")
-	assertHeader(t, req, mw.RegionHeader, "Bavaria")
+	assertHeader(t, req, mw.RegionHeader, "BY")
 	assertHeader(t, req, mw.CityHeader, "Munich")
 
 	req = httptest.NewRequest(http.MethodGet, "http://localhost", nil)
@@ -135,7 +135,7 @@ func TestGeoIPFromXRealIP(t *testing.T) {
 
 	instance.ServeHTTP(httptest.NewRecorder(), req)
 	assertHeader(t, req, mw.CountryHeader, "DE")
-	assertHeader(t, req, mw.RegionHeader, "Bavaria")
+	assertHeader(t, req, mw.RegionHeader, "BY")
 	assertHeader(t, req, mw.CityHeader, "Munich")
 }
 

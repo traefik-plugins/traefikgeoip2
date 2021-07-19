@@ -47,7 +47,7 @@ func CreateCityDBLookup(rdr *geoip2.CityReader) LookupGeoIP2 {
 			city:    rec.City.Names["en"],
 		}
 		if rec.Subdivisions != nil {
-			retval.region = rec.Subdivisions[0].Names["en"]
+			retval.region = rec.Subdivisions[0].ISOCode
 		}
 		return &retval, nil
 	}
