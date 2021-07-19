@@ -5,7 +5,7 @@ export GO111MODULE=on
 default: lint test
 
 prepare:
-	gunzip -kf GeoLite2-City.mmdb.gz
+	tar -xvzf geolite2.tgz
 	
 lint:
 	golangci-lint run
@@ -20,4 +20,5 @@ vendor:
 	go mod vendor
 
 clean:
-	rm -rf ./vendor
+	# rm -rf ./vendor
+	rm -rf *.mmdb

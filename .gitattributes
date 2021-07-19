@@ -1,5 +1,5 @@
-GeoLite2*   export-ignore
-Dockerfile  export-ignore
-.github/    export-ignore
-Makefile    export-ignore
+geolite2.tgz    export-ignore
+Dockerfile      export-ignore
+.github/        export-ignore
+Makefile        export-ignore
 
