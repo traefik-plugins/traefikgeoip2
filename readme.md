@@ -88,6 +88,7 @@ to install the plugin.
     ```
 
 2. Apply
+   
     `kubectl apply -f mw.yaml`
 
 ### Apply GeoIP2 middleware to Traefik route
