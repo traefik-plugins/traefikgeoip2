@@ -51,6 +51,10 @@ Below, there's an instruction for adjusting
 to install the plugin.
 
 1. Create a file named `traefik.yaml`, replacing `${TDR}` with actual Docker registry path. 
+   
+    This is required in Kubernetes, since MaxMind DB size is bigger, 
+    than data size allowed for `ConfigMap` or `Secret` resource.
+
     ```yaml
     image:
       name: ${TDR}/traefik
@@ -64,12 +68,13 @@ to install the plugin.
       - "--experimental.plugins.geoip2.modulename=github.com/GiGInnovationLabs/traefikgeoip2"
       - "--experimental.plugins.geoip2.version=v0.1.1"
     ```
-2. Install [Traefik Helm chart](https://github.com/traefik/traefik-helm-chart) using customization.
-    ```
-      helm repo add traefik https://helm.traefik.io/traefik
-      helm repo update
-      helm upgrade --install -n traefik --create-namespace \
-        my-traefik traefik/traefik --version 10.1.1 -f ./traefik.yaml      
+2. Install customized [Traefik Helm chart](https://github.com/traefik/traefik-helm-chart).
+
+    ```sh
+    helm repo add traefik https://helm.traefik.io/traefik
+    helm repo update
+    helm upgrade --install -n traefik --create-namespace \
+      my-traefik traefik/traefik --version 10.1.1 -f ./traefik.yaml      
     ```
 
 ### Create Traefik Middleware
