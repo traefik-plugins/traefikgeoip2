@@ -22,6 +22,9 @@ You are welcome:
 
 ### Create custom Traefik Docker image
 
+This is ~required in Kubernetes, since MaxMind DB size is bigger, 
+than data size allowed for `ConfigMap` or `Secret` resource.
+
 Assuming you want to try free 
 [GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data)
 database, that is already downloaded locally.
@@ -52,9 +55,6 @@ to install the plugin.
 
 1. Create a file named `traefik.yaml`, replacing `${TDR}` with actual Docker registry path. 
    
-    This is required in Kubernetes, since MaxMind DB size is bigger, 
-    than data size allowed for `ConfigMap` or `Secret` resource.
-
     ```yaml
     image:
       name: ${TDR}/traefik
@@ -98,7 +98,7 @@ to install the plugin.
 
 ### Apply GeoIP2 middleware to Traefik route
 
-!!! warning TO BE DEFINED
+!!! warning TO BE DEFINED 
 
 ## Development
 
