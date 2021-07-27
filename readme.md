@@ -40,7 +40,7 @@ to install the plugin.
     ```
       helm repo add traefik https://helm.traefik.io/traefik
       helm repo update
-      helm install my-traefik traefik/traefik --version 10.1.1 -f ./traefik.yaml      
+      helm upgrade --install -n traefik --create-namespace my-traefik traefik/traefik --version 10.1.1 -f ./traefik.yaml      
     ```
 
 ### Create Traefik Middleware
