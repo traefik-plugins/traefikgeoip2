@@ -1,4 +1,4 @@
-# MaxMind GeoIP2 plugin for Traefik
+# Traefik plugin for MaxMind GeoIP2
 
 [Traefik](https://doc.traefik.io/traefik/) plugin 
 that registers a custom middleware 

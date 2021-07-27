@@ -1,6 +1,6 @@
 displayName: MaxMind GeoIP2
 
-summary: 'Traefik plugin that registers a custom middleware for getting data from MaxMind GeoIP databases and pass it downstream via HTTP request headers.'
+summary: 'Getting data from MaxMind GeoIP databases and pass it downstream via HTTP request headers.'
 
 type: middleware
 
