@@ -1,59 +1,33 @@
 # Traefik GeoIP2 plugin
 
-Plugin for getting information from MaxMind geo database and pass it to request headers.
-Supports GeoIP2 and GeoLite2 databases.
+[Traefik](https://doc.traefik.io/traefik/) plugin 
+that allows to create a custom middleware 
+for getting data from local 
+[MaxMind GeoIP databases](https://www.maxmind.com/en/geoip2-services-and-databases) 
+and pass it downstream via HTTP request headers.
 
-## Usage
+Supports both 
+[GeoIP2](https://www.maxmind.com/en/geoip2-databases) 
+and 
+[GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) databases.
 
-### Configuration
+## Configuration
 
-For each plugin, the Traefik static configuration must define the module name (as is usual for Go packages).
+### Enable plugin in Traefik
 
-The following declaration (given here in YAML) defines an plugin:
+!!! TO BE DEFINED
 
-```yaml
-# Static configuration
-pilot:
-  token: xxxxx
+### Create a Middleware
 
-experimental:
-  plugins:
-    geoip2:
-      moduleName: github.com/GiGInnovationLabs/traefik-geoip2
-      version: v0.1.1
-```
+!!! TO BE DEFINED
 
-Here is an example of a file provider dynamic configuration (given here in YAML), where the interesting part is the `http.middlewares` section:
+### Apply middleware to the Traefik route
 
-```yaml
-# Dynamic configuration
-
-http:
-  routers:
-    my-router:
-      rule: host(`demo.localhost`)
-      service: service-foo
-      entryPoints:
-        - web
-      middlewares:
-        - geoip2
-
-  services:
-    service-foo:
-      loadBalancer:
-        servers:
-          - url: http://127.0.0.1:5000
-  
-  middlewares:
-    geoip2:
-      plugin:
-        geoip2:
-          dbPath: ./GeoLite2-Country.mmdb
-```
+!!! TO BE DEFINED
 
 ## Development
 
-To run linter and tests - execute
+To run linter and tests execute this command
 
 ```sh
 make prepare
