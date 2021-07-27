@@ -20,6 +20,10 @@ You are welcome:
   * refer to the Traefik configuraiton documentation for other orchestration frameworks.
   * contribute to this repository about configuraion for other orchestration environments.
 
+### Create custom Traefik Docker image
+
+!!! warning TO BE DEFINED
+
 ### Enable plugin in Traefik
 
 We recommend to use [official Helm chart](https://github.com/traefik/traefik-helm-chart)
@@ -49,11 +53,19 @@ to install the plugin.
 
 ### Create Traefik Middleware
 
-!!! TO BE DEFINED
+!!! warning TO BE DEFINED
 
-### Apply Traefik Middleware to Traefik route
-
-!!! TO BE DEFINED
+```
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: geoip2
+  namespace: traefik
+spec:
+  plugin:
+    geoip:
+      dbPath: "/var/lib/geoip2/GeoLite2-City.mmdb"
+```
 
 ## Development
 
