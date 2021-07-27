@@ -22,7 +22,24 @@ You are welcome:
 
 ### Create custom Traefik Docker image
 
-!!! warning TO BE DEFINED
+Assuming you want to try free 
+[GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data)
+database, that is already downloaded.
+
+1. Create custom `Dockerfile`
+  
+    ```
+    FROM traefik:2.4.9
+    COPY GeoLite2-City.mmdb /var/lib/traefikgeoip2/ 
+    ```
+
+2. Build and publish to a Docker registry
+   
+    ```sh
+    export T_D_R=${...}
+    docker build -t ${T_D_R}/traefik:2.4.9 .
+    docker push ${T_D_R}/traefik:2.4.9
+
 
 ### Enable plugin in Traefik
 
@@ -33,9 +50,14 @@ Below, there's an instruction for adjusting
 [official Helm chart](https://github.com/traefik/traefik-helm-chart)
 to install the plugin.
 
-1. Create a file named `traefik.yaml`
+1. Create a file named `traefik.yaml`, replace `${T_D_R}` with actual Docker registry path.
    
     ```yaml
+
+    image:
+      name: ${T_D_R}/traefik
+      tag: "2.4.9"
+
     pilot:
       enabled: true
       token: "${TRAEFIK_PILOT_TOKEN}"
@@ -53,9 +75,7 @@ to install the plugin.
 
 ### Create Traefik Middleware
 
-!!! warning TO BE DEFINED
-
-```
+```yaml
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
@@ -66,6 +86,10 @@ spec:
     geoip:
       dbPath: "/var/lib/geoip2/GeoLite2-City.mmdb"
 ```
+
+### Apply GeoIP2 middleware to Traefik route
+
+!!! warning TO BE DEFINED
 
 ## Development
 
