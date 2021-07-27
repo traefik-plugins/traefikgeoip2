@@ -50,10 +50,10 @@ Below, there's an instruction for adjusting
 [official Helm chart](https://github.com/traefik/traefik-helm-chart)
 to install the plugin.
 
-1. Create a file named `traefik.yaml`, replacing `${T_D_R}` with actual Docker registry path. 
+1. Create a file named `traefik.yaml`, replacing `${TDR}` with actual Docker registry path. 
     ```yaml
     image:
-      name: ${T_D_R}/traefik
+      name: ${TDR}/traefik
       tag: "2.4.9"
 
     pilot:
