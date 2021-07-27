@@ -36,9 +36,9 @@ database, that is already downloaded locally.
 2. Build and publish to a Docker registry
    
     ```sh
-    export T_D_R=${...}
-    docker build -t ${T_D_R}/traefik:2.4.9 .
-    docker push ${T_D_R}/traefik:2.4.9
+    export TDR=${...}
+    docker build -t ${TDR}/traefik:2.4.9 .
+    docker push ${TDR}/traefik:2.4.9
 
 
 ### Enable plugin in Traefik
