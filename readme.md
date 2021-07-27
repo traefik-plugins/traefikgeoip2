@@ -32,6 +32,10 @@ to install the plugin.
 1. Create a file named `traefik.yaml`
    
     ```yaml
+    pilot:
+      enabled: true
+      token: "${TRAEFIK_PILOT_TOKEN}"
+
     additionalArguments:
       - "--experimental.plugins.geoip2.modulename=github.com/GiGInnovationLabs/traefikgeoip2"
       - "--experimental.plugins.geoip2.version=v0.1.1"
