@@ -68,14 +68,14 @@ func New(ctx context.Context, next http.Handler, cfg *Config, name string) (http
 	}, nil
 }
 
-func (mw *TraefikGeoIP2) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+func (mw *TraefikGeoIP2) ServeHTTP(reqWr http.ResponseWriter, req *http.Request) {
 	log.Printf("[geoip2] remoteAddr: %v, xRealIp: %v", req.RemoteAddr, req.Header.Get(RealIPHeader))
 
 	if mw.lookup == nil {
 		req.Header.Set(CountryHeader, Unknown)
 		req.Header.Set(RegionHeader, Unknown)
 		req.Header.Set(CityHeader, Unknown)
-		mw.next.ServeHTTP(rw, req)
+		mw.next.ServeHTTP(reqWr, req)
 		return
 	}
 
@@ -102,5 +102,5 @@ func (mw *TraefikGeoIP2) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	req.Header.Set(RegionHeader, res.region)
 	req.Header.Set(CityHeader, res.city)
 
-	mw.next.ServeHTTP(rw, req)
+	mw.next.ServeHTTP(reqWr, req)
 }

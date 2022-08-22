@@ -2,6 +2,7 @@ package traefikgeoip2_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,8 +11,8 @@ import (
 )
 
 const (
-	ValidIP        = "188.193.88.199"
-	ValidIPAndPort = "188.193.88.199:9999"
+	ValidIP       = "188.193.88.199"
+	ValidIPNoCity = "20.1.184.61"
 )
 
 func TestGeoIPConfig(t *testing.T) {
@@ -92,11 +93,18 @@ func TestGeoIPFromRemoteAddr(t *testing.T) {
 	instance, _ := mw.New(context.TODO(), next, mwCfg, "traefik-geoip2")
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	req.RemoteAddr = ValidIPAndPort
+	req.RemoteAddr = fmt.Sprintf("%s:9999", ValidIP)
 	instance.ServeHTTP(httptest.NewRecorder(), req)
 	assertHeader(t, req, mw.CountryHeader, "DE")
 	assertHeader(t, req, mw.RegionHeader, "BY")
 	assertHeader(t, req, mw.CityHeader, "Munich")
+
+	req = httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req.RemoteAddr = fmt.Sprintf("%s:9999", ValidIPNoCity)
+	instance.ServeHTTP(httptest.NewRecorder(), req)
+	assertHeader(t, req, mw.CountryHeader, "US")
+	assertHeader(t, req, mw.RegionHeader, mw.Unknown)
+	assertHeader(t, req, mw.CityHeader, mw.Unknown)
 
 	req = httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 	req.RemoteAddr = "qwerty:9999"
@@ -114,7 +122,7 @@ func TestGeoIPCountryDBFromRemoteAddr(t *testing.T) {
 	instance, _ := mw.New(context.TODO(), next, mwCfg, "traefik-geoip2")
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	req.RemoteAddr = ValidIPAndPort
+	req.RemoteAddr = fmt.Sprintf("%s:9999", ValidIP)
 	instance.ServeHTTP(httptest.NewRecorder(), req)
 
 	assertHeader(t, req, mw.CountryHeader, "DE")
@@ -130,13 +138,18 @@ func TestGeoIPFromXRealIP(t *testing.T) {
 	instance, _ := mw.New(context.Background(), next, mwCfg, "traefik-geoip2")
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	req.RemoteAddr = "1.1.1.1:9999"
 	req.Header.Set("X-Real-Ip", ValidIP)
-
 	instance.ServeHTTP(httptest.NewRecorder(), req)
 	assertHeader(t, req, mw.CountryHeader, "DE")
 	assertHeader(t, req, mw.RegionHeader, "BY")
 	assertHeader(t, req, mw.CityHeader, "Munich")
+
+	req = httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req.Header.Set("X-Real-Ip", ValidIPNoCity)
+	instance.ServeHTTP(httptest.NewRecorder(), req)
+	assertHeader(t, req, mw.CountryHeader, "US")
+	assertHeader(t, req, mw.RegionHeader, mw.Unknown)
+	assertHeader(t, req, mw.CityHeader, mw.Unknown)
 }
 
 func assertHeader(t *testing.T, req *http.Request, key, expected string) {
