@@ -14,8 +14,6 @@ const Unknown = "XX"
 const DefaultDBPath = "GeoLite2-Country.mmdb"
 
 const (
-	// RealIPHeader real ip header.
-	RealIPHeader = "X-Real-IP"
 	// CountryHeader country header name.
 	CountryHeader = "X-GeoIP2-Country"
 	// RegionHeader region header name.
