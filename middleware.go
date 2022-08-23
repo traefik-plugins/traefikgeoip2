@@ -79,11 +79,11 @@ func (mw *TraefikGeoIP2) ServeHTTP(reqWr http.ResponseWriter, req *http.Request)
 		return
 	}
 
-    ipStr := req.RemoteAddr
-    tmp, _, err := net.SplitHostPort(ipStr)
-    if err == nil {
-        ipStr = tmp
-    }
+	ipStr := req.RemoteAddr
+	tmp, _, err := net.SplitHostPort(ipStr)
+	if err == nil {
+		ipStr = tmp
+	}
 
 	res, err := mw.lookup(net.ParseIP(ipStr))
 	if err != nil {
