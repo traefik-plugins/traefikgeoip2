@@ -12,8 +12,9 @@ import (
 	"github.com/IncSW/geoip2"
 )
 
-var lookup LookupGeoIP2;
+var lookup LookupGeoIP2
 
+// ResetLookup reset lookup function.
 func ResetLookup() {
 	lookup = nil
 }
@@ -32,8 +33,8 @@ func CreateConfig() *Config {
 
 // TraefikGeoIP2 a traefik geoip2 plugin.
 type TraefikGeoIP2 struct {
-	next   http.Handler
-	name   string
+	next http.Handler
+	name string
 }
 
 // New created a new TraefikGeoIP2 plugin.
@@ -41,8 +42,8 @@ func New(_ context.Context, next http.Handler, cfg *Config, name string) (http.H
 	if _, err := os.Stat(cfg.DBPath); err != nil {
 		log.Printf("[geoip2] DB not found: db=%s, name=%s, err=%v", cfg.DBPath, name, err)
 		return &TraefikGeoIP2{
-			next:   next,
-			name:   name,
+			next: next,
+			name: name,
 		}, nil
 	}
 
@@ -67,8 +68,8 @@ func New(_ context.Context, next http.Handler, cfg *Config, name string) (http.H
 	}
 
 	return &TraefikGeoIP2{
-		next:   next,
-		name:   name,
+		next: next,
+		name: name,
 	}, nil
 }
 

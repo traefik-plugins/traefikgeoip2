@@ -2,7 +2,7 @@
 
 export GO111MODULE=on
 
-default: lint test
+default: prepare lint test
 
 prepare:
 	tar -xvzf geolite2.tgz
