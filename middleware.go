@@ -39,30 +39,30 @@ type TraefikGeoIP2 struct {
 // New created a new TraefikGeoIP2 plugin.
 func New(_ context.Context, next http.Handler, cfg *Config, name string) (http.Handler, error) {
 	if _, err := os.Stat(cfg.DBPath); err != nil {
-		log.Printf("[geoip2] DB `%s' not found: %v", cfg.DBPath, err)
+		log.Printf("[geoip2] DB not found: db=%s, name=%s, err=%v", cfg.DBPath, name, err)
 		return &TraefikGeoIP2{
 			next:   next,
 			name:   name,
 		}, nil
 	}
 
-	log.Printf("[geoip2] New():lookup=%v", lookup)
-
 	if lookup == nil && strings.Contains(cfg.DBPath, "City") {
 		rdr, err := geoip2.NewCityReaderFromFile(cfg.DBPath)
 		if err != nil {
-			log.Printf("[geoip2] DB `%s' not initialized: %v", cfg.DBPath, err)
+			log.Printf("[geoip2] lookup DB is not initialized: db=%s, name=%s, err=%v", cfg.DBPath, name, err)
 		} else {
 			lookup = CreateCityDBLookup(rdr)
+			log.Printf("[geoip2] lookup DB initialized: db=%s, name=%s, lookup=%v", cfg.DBPath, name, lookup)
 		}
 	}
 
 	if lookup == nil && strings.Contains(cfg.DBPath, "Country") {
 		rdr, err := geoip2.NewCountryReaderFromFile(cfg.DBPath)
 		if err != nil {
-			log.Printf("[geoip2] DB `%s' not initialized: %v", cfg.DBPath, err)
+			log.Printf("[geoip2] lookup DB is not initialized: db=%s, name=%s, err=%v", cfg.DBPath, name, err)
 		} else {
 			lookup = CreateCountryDBLookup(rdr)
+			log.Printf("[geoip2] lookup DB initialized: db=%s, name=%s, lookup=%v", cfg.DBPath, name, lookup)
 		}
 	}
 
@@ -73,8 +73,6 @@ func New(_ context.Context, next http.Handler, cfg *Config, name string) (http.H
 }
 
 func (mw *TraefikGeoIP2) ServeHTTP(reqWr http.ResponseWriter, req *http.Request) {
-	log.Printf("[geoip2] remoteAddr: %v", req.RemoteAddr)
-
 	if lookup == nil {
 		req.Header.Set(CountryHeader, Unknown)
 		req.Header.Set(RegionHeader, Unknown)
@@ -91,7 +89,7 @@ func (mw *TraefikGeoIP2) ServeHTTP(reqWr http.ResponseWriter, req *http.Request)
 
 	res, err := lookup(net.ParseIP(ipStr))
 	if err != nil {
-		log.Printf("[geoip2] Unable to find for `%s', %v", ipStr, err)
+		log.Printf("[geoip2] Unable to find: ip=%s, err=%v", ipStr, err)
 		res = &GeoIPResult{
 			country: Unknown,
 			region:  Unknown,

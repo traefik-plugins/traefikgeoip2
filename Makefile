@@ -6,7 +6,7 @@ default: lint test
 
 prepare:
 	tar -xvzf geolite2.tgz
-	
+
 lint:
 	golangci-lint run
 
@@ -14,7 +14,7 @@ test:
 	go test -v -cover ./...
 
 yaegi_test:
-	yaegi test -v .	
+	yaegi test -v .
 
 vendor:
 	go mod vendor
