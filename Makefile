@@ -8,7 +8,7 @@ prepare:
 	tar -xvzf geolite2.tgz
 
 lint:
-	golangci-lint run
+	golangci-lint run -v
 
 test:
 	go test -v -cover ./...
