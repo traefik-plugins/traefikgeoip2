@@ -19,18 +19,15 @@ jobs:
     env:
       GOLANGCI_LINT_VERSION: v1.50.0
       YAEGI_VERSION: v0.14.3
-      CGO_ENABLED: 0
-    # defaults:
-      # run:
-        # working-directory: ${{ github.workspace }}/go/src/github.com/${{ github.repository }}
     steps:
       - uses: actions/checkout@v3
         with:
-          # path: go/src/github.com/${{ github.repository }}
           fetch-depth: 0
+      - uses: wagoid/commitlint-github-action@v5
+        with:
+          configFile: .commitlintrc.yml
       - uses: actions/setup-go@v3
         with:
-          # go-version-file: ${{ github.workspace }}/go/src/github.com/${{ github.repository }}/go.mod
           go-version-file: ${{ github.workspace }}/go.mod
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
@@ -40,11 +37,5 @@ jobs:
       - name: setup yaegi
         run: curl -sfL https://raw.githubusercontent.com/traefik/yaegi/master/install.sh | bash -s -- -b /home/runner/.local/bin ${YAEGI_VERSION}
       - uses: extractions/setup-just@v1
-      # - name: deps
-        # run: |
-          # go mod tidy -v
-          # git diff --exit-code go.mod
-        # env:
-          # GOPATH: ${{ github.workspace }}/go
       - name: test
         run: just test
