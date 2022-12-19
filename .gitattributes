@@ -1,5 +1,5 @@
 geolite2.tgz    export-ignore
 Dockerfile      export-ignore
 .github/        export-ignore
-Makefile        export-ignore
+justfile        export-ignore
 

@@ -28,7 +28,7 @@ func TestGeoIPConfig(t *testing.T) {
 		t.Fatalf("Must not fail on missing DB")
 	}
 
-	mwCfg.DBPath = "Makefile"
+	mwCfg.DBPath = "justfile"
 	_, err = mw.New(context.TODO(), nil, mwCfg, "")
 	if err != nil {
 		t.Fatalf("Must not fail on invalid DB format")
