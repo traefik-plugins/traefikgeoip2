@@ -35,8 +35,6 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
           args: "--help"
-      - run: |
-          go install gotest.tools/gotestsum@latest
       - name: setup yaegi
         run: curl -sfL https://raw.githubusercontent.com/traefik/yaegi/master/install.sh | bash -s -- -b /home/runner/.local/bin ${YAEGI_VERSION}
       - uses: extractions/setup-just@v1
