@@ -20,6 +20,8 @@ const (
 	RegionHeader = "X-GeoIP2-Region"
 	// CityHeader city header name.
 	CityHeader = "X-GeoIP2-City"
+	// IPAddressHeader city header name.
+	IPAddressHeader = "X-GeoIP2-IPAddress"
 )
 
 // GeoIPResult GeoIPResult.

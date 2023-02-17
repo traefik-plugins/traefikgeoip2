@@ -23,10 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 10
       - uses: wagoid/commitlint-github-action@v5
-        with:
-          configFile: .commitlintrc.yml
       - uses: actions/setup-go@v3
         with:
           go-version-file: ${{ github.workspace }}/go.mod

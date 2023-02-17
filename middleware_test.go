@@ -75,6 +75,7 @@ func TestMissingGeoIPDB(t *testing.T) {
 
 	recorder := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req.RemoteAddr = "1.2.3.4"
 
 	instance.ServeHTTP(recorder, req)
 	if recorder.Result().StatusCode != http.StatusOK {
@@ -86,6 +87,7 @@ func TestMissingGeoIPDB(t *testing.T) {
 	assertHeader(t, req, mw.CountryHeader, mw.Unknown)
 	assertHeader(t, req, mw.RegionHeader, mw.Unknown)
 	assertHeader(t, req, mw.CityHeader, mw.Unknown)
+	assertHeader(t, req, mw.IPAddressHeader, mw.Unknown)
 }
 
 func TestGeoIPFromRemoteAddr(t *testing.T) {
@@ -102,6 +104,7 @@ func TestGeoIPFromRemoteAddr(t *testing.T) {
 	assertHeader(t, req, mw.CountryHeader, "DE")
 	assertHeader(t, req, mw.RegionHeader, "BY")
 	assertHeader(t, req, mw.CityHeader, "Munich")
+	assertHeader(t, req, mw.IPAddressHeader, ValidIP)
 
 	req = httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 	req.RemoteAddr = fmt.Sprintf("%s:9999", ValidIPNoCity)
@@ -109,6 +112,7 @@ func TestGeoIPFromRemoteAddr(t *testing.T) {
 	assertHeader(t, req, mw.CountryHeader, "US")
 	assertHeader(t, req, mw.RegionHeader, mw.Unknown)
 	assertHeader(t, req, mw.CityHeader, mw.Unknown)
+	assertHeader(t, req, mw.IPAddressHeader, ValidIPNoCity)
 
 	req = httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 	req.RemoteAddr = "qwerty:9999"
@@ -116,6 +120,7 @@ func TestGeoIPFromRemoteAddr(t *testing.T) {
 	assertHeader(t, req, mw.CountryHeader, mw.Unknown)
 	assertHeader(t, req, mw.RegionHeader, mw.Unknown)
 	assertHeader(t, req, mw.CityHeader, mw.Unknown)
+	assertHeader(t, req, mw.IPAddressHeader, "qwerty")
 }
 
 func TestGeoIPCountryDBFromRemoteAddr(t *testing.T) {
@@ -133,6 +138,7 @@ func TestGeoIPCountryDBFromRemoteAddr(t *testing.T) {
 	assertHeader(t, req, mw.CountryHeader, "DE")
 	assertHeader(t, req, mw.RegionHeader, mw.Unknown)
 	assertHeader(t, req, mw.CityHeader, mw.Unknown)
+	assertHeader(t, req, mw.IPAddressHeader, ValidIP)
 }
 
 func assertHeader(t *testing.T, req *http.Request, key, expected string) {

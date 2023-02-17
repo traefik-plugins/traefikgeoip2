@@ -78,6 +78,7 @@ func (mw *TraefikGeoIP2) ServeHTTP(reqWr http.ResponseWriter, req *http.Request)
 		req.Header.Set(CountryHeader, Unknown)
 		req.Header.Set(RegionHeader, Unknown)
 		req.Header.Set(CityHeader, Unknown)
+		req.Header.Set(IPAddressHeader, Unknown)
 		mw.next.ServeHTTP(reqWr, req)
 		return
 	}
@@ -101,6 +102,7 @@ func (mw *TraefikGeoIP2) ServeHTTP(reqWr http.ResponseWriter, req *http.Request)
 	req.Header.Set(CountryHeader, res.country)
 	req.Header.Set(RegionHeader, res.region)
 	req.Header.Set(CityHeader, res.city)
+	req.Header.Set(IPAddressHeader, ipStr)
 
 	mw.next.ServeHTTP(reqWr, req)
 }
