@@ -4,7 +4,7 @@ summary: 'Getting data from MaxMind GeoIP databases and pass it downstream via H
 
 type: middleware
 
-import: github.com/GiGInnovationLabs/traefikgeoip2
+import: github.com/traefik-plugins/traefikgeoip2
 
 testData:
   dbPath: 'GeoLite2-Country.mmdb'

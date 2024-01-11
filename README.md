@@ -65,7 +65,7 @@ to install the plugin.
       token: "${TRAEFIK_PILOT_TOKEN}"
 
     additionalArguments:
-      - "--experimental.plugins.geoip2.modulename=github.com/GiGInnovationLabs/traefikgeoip2"
+      - "--experimental.plugins.geoip2.modulename=github.com/traefik-plugins/traefikgeoip2"
       - "--experimental.plugins.geoip2.version=v0.1.1"
     ```
 2. Install customized [Traefik Helm chart](https://github.com/traefik/traefik-helm-chart).
