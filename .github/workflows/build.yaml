@@ -1,0 +1,15 @@
+name: Build
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '*.md'
+      - '*.puml'
+      - '.github/workflows/release.yaml'
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    uses: traefik-plugins/workflows/.github/workflows/build.yaml@main

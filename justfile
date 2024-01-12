@@ -1,4 +1,3 @@
-
 # list available receipes
 @default:
   just --list
@@ -20,6 +19,7 @@ test-go:
 # run tests via yaegi
 test-yaegi: && _clean-yaegi
   #!/usr/bin/env bash
+  set -euox
 
   TMP=$(mktemp -d yaegi.XXXXXX -p /tmp)
   WRK="${TMP}/go/src/github.com/traefik-plugins"
@@ -33,3 +33,7 @@ test: _prepare lint test-go test-yaegi
 
 clean:
   rm -rf *.mmdb
+
+vendor:
+  go mod vendor
+
