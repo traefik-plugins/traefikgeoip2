@@ -8,3 +8,4 @@ import: github.com/traefik-plugins/traefikgeoip2
 
 testData:
   dbPath: 'GeoLite2-Country.mmdb'
+  preferXForwardedForHeader: false

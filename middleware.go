@@ -21,7 +21,8 @@ func ResetLookup() {
 
 // Config the plugin configuration.
 type Config struct {
-	DBPath string `json:"dbPath,omitempty"`
+	DBPath                    string `json:"dbPath,omitempty"`
+	PreferXForwardedForHeader bool
 }
 
 // CreateConfig creates the default plugin configuration.
@@ -33,8 +34,9 @@ func CreateConfig() *Config {
 
 // TraefikGeoIP2 a traefik geoip2 plugin.
 type TraefikGeoIP2 struct {
-	next http.Handler
-	name string
+	next                      http.Handler
+	name                      string
+	preferXForwardedForHeader bool
 }
 
 // New created a new TraefikGeoIP2 plugin.
@@ -42,8 +44,9 @@ func New(_ context.Context, next http.Handler, cfg *Config, name string) (http.H
 	if _, err := os.Stat(cfg.DBPath); err != nil {
 		log.Printf("[geoip2] DB not found: db=%s, name=%s, err=%v", cfg.DBPath, name, err)
 		return &TraefikGeoIP2{
-			next: next,
-			name: name,
+			next:                      next,
+			name:                      name,
+			preferXForwardedForHeader: cfg.PreferXForwardedForHeader,
 		}, nil
 	}
 
@@ -68,8 +71,9 @@ func New(_ context.Context, next http.Handler, cfg *Config, name string) (http.H
 	}
 
 	return &TraefikGeoIP2{
-		next: next,
-		name: name,
+		next:                      next,
+		name:                      name,
+		preferXForwardedForHeader: cfg.PreferXForwardedForHeader,
 	}, nil
 }
 
@@ -83,12 +87,7 @@ func (mw *TraefikGeoIP2) ServeHTTP(reqWr http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	ipStr := req.RemoteAddr
-	tmp, _, err := net.SplitHostPort(ipStr)
-	if err == nil {
-		ipStr = tmp
-	}
-
+	ipStr := getClientIP(req, mw.preferXForwardedForHeader)
 	res, err := lookup(net.ParseIP(ipStr))
 	if err != nil {
 		log.Printf("[geoip2] Unable to find: ip=%s, err=%v", ipStr, err)
@@ -105,4 +104,23 @@ func (mw *TraefikGeoIP2) ServeHTTP(reqWr http.ResponseWriter, req *http.Request)
 	req.Header.Set(IPAddressHeader, ipStr)
 
 	mw.next.ServeHTTP(reqWr, req)
+}
+
+func getClientIP(req *http.Request, preferXForwardedForHeader bool) string {
+	if preferXForwardedForHeader {
+		// Check X-Forwarded-For header first
+		forwardedFor := req.Header.Get("X-Forwarded-For")
+		if forwardedFor != "" {
+			ips := strings.Split(forwardedFor, ",")
+			return strings.TrimSpace(ips[0])
+		}
+	}
+
+	// If X-Forwarded-For is not present or retrieval is not enabled, fallback to RemoteAddr
+	remoteAddr := req.RemoteAddr
+	tmp, _, err := net.SplitHostPort(remoteAddr)
+	if err == nil {
+		remoteAddr = tmp
+	}
+	return remoteAddr
 }
