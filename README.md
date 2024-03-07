@@ -68,6 +68,15 @@ spec:
       dbPath: "/geoip2/GeoLite2-City.mmdb"
 ```
 
+## Configuration
+
+The plugin currently supports the following configuration settings:
+
+Name | Description
+---- | ----
+DbPath | *Required* Container path to GeoIP database.
+PreferXForwardedForHeader | Should `X-Forwarded-For` header be used to extract IP address. Default `false`.
+
 ## Development
 
 To run linter and tests execute this command
