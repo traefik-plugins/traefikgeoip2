@@ -18,7 +18,7 @@ is that a container should contain a database within it.
 
 ### Kubernetes
 
-> **Warning**
+> [!WARNING]
 > Setup below is provided for demonstration purpose and should not be used on production.
 > Traefik plugin side is observed to be frequently unavailable, 
 > so plugin download may fail on pod restart and all plugins will be unavailable.
