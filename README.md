@@ -20,8 +20,8 @@ is that a container should contain a database within it.
 
 > [!WARNING]
 > Setup below is provided for demonstration purpose and should not be used on production.
-> Traefik plugin side is observed to be frequently unavailable, 
-> so plugin download may fail on pod restart and all plugins will be unavailable.
+> Traefik's plugin site is observed to be frequently unavailable, 
+> so plugin download may fail on pod restart.
 
 Tested with [official Traefik chart](https://artifacthub.io/packages/helm/traefik/traefik) version 26.0.0.
 
