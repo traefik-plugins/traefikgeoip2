@@ -11,100 +11,67 @@ Supports both
 and 
 [GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) databases.
 
-## Configuration
+## Installation 
 
-We're using this plugin in Kubernetes, thus the configuration guide is Kubernetes oriented.
+The tricky part of installing this plugin into containerized environments, like Kubernetes,
+is that a container should contain a database within it.
 
-You are welcome: 
+### Kubernetes
 
-  * refer to the Traefik configuraiton documentation for other orchestration frameworks.
-  * contribute to this README about the configuraion for other orchestration environments.
+> **Warning**
+> Setup below is provided for demonstration purpose and should not be used on production.
+> Traefik plugin side is observed to be frequently unavailable, 
+> so plugin download may fail on pod restart and all plugins will be unavailable.
 
-### Create custom Traefik Docker image
+Tested with [official Traefik chart](https://artifacthub.io/packages/helm/traefik/traefik) version 26.0.0.
 
-This is ~required in Kubernetes, since MaxMind DB size is bigger, 
-than data size allowed for `ConfigMap` or `Secret` resource.
+The following snippet should be added to `values.yaml`:
 
-Assuming you want to try free 
-[GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data)
-database, that is already downloaded locally.
-
-1. Create custom `Dockerfile`
-  
-    ```
-    FROM traefik:2.4.9
-    COPY GeoLite2-City.mmdb /var/lib/traefikgeoip2/ 
-    ```
-
-2. Build and publish to a Docker registry
-   
-    ```sh
-    export TDR=${...}
-    docker build -t ${TDR}/traefik:2.4.9 .
-    docker push ${TDR}/traefik:2.4.9
-
-
-### Enable plugin in Traefik
-
-We recommend to use [official Helm chart](https://github.com/traefik/traefik-helm-chart)
-for installing Traefik into Kubernetes cluster.
-
-Below, there's an instruction for adjusting 
-[official Helm chart](https://github.com/traefik/traefik-helm-chart)
-to install the plugin.
-
-1. Create a file named `traefik.yaml`, replacing `${TDR}` with actual Docker registry path. 
-   
-    ```yaml
-    image:
-      name: ${TDR}/traefik
-      tag: "2.4.9"
-
-    pilot:
-      enabled: true
-      token: "${TRAEFIK_PILOT_TOKEN}"
-
-    additionalArguments:
-      - "--experimental.plugins.geoip2.modulename=github.com/traefik-plugins/traefikgeoip2"
-      - "--experimental.plugins.geoip2.version=v0.1.1"
-    ```
-2. Install customized [Traefik Helm chart](https://github.com/traefik/traefik-helm-chart).
-
-    ```sh
-    helm repo add traefik https://helm.traefik.io/traefik
-    helm repo update
-    helm upgrade --install -n traefik --create-namespace \
-      my-traefik traefik/traefik --version 10.1.1 -f ./traefik.yaml      
-    ```
+```yaml
+experimental:
+  plugins:
+    geoip2:
+      moduleName: github.com/traefik-plugins/traefikgeoip2
+      version: v0.22.0
+deployment:
+  additionalVolumes:
+    - name: geoip2
+      emptyDir: {}
+  initContainers:
+    - name: download
+      image: alpine
+      volumeMounts:
+        - name: geoip2
+          mountPath: /tmp/geoip2
+      command:
+        - "/bin/sh"
+        - "-ce"
+        - |
+          wget -P /tmp https://raw.githubusercontent.com/traefik-plugins/traefikgeoip2/main/geolite2.tgz
+          tar --directory /tmp/geoip2 -xvzf /tmp/geolite2.tgz
+additionalVolumeMounts:
+  - name: geoip2
+    mountPath: /geoip2
+```
 
 ### Create Traefik Middleware
 
-1. Create a file named `mw.yaml`
-    ```yaml
-    apiVersion: traefik.containo.us/v1alpha1
-    kind: Middleware
-    metadata:
-      name: geoip2
-      namespace: traefik
-    spec:
-      plugin:
-        geoip:
-          dbPath: "/var/lib/geoip2/GeoLite2-City.mmdb"
-    ```
-
-2. Apply
-   
-    `kubectl apply -f mw.yaml`
-
-### Apply GeoIP2 middleware to Traefik route
-
-!!! warning TO BE DEFINED 
+```yaml
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: geoip2
+  namespace: traefik
+spec:
+  plugin:
+    geoip2:
+      dbPath: "/geoip2/GeoLite2-City.mmdb"
+```
 
 ## Development
 
 To run linter and tests execute this command
 
 ```sh
-make prepare
-make
+just test
 ```
