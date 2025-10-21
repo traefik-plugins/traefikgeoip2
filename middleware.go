@@ -8,11 +8,14 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/IncSW/geoip2"
 )
 
 var lookup LookupGeoIP2
+
+var ticker *time.Ticker
 
 // ResetLookup reset lookup function.
 func ResetLookup() {
@@ -23,12 +26,14 @@ func ResetLookup() {
 type Config struct {
 	DBPath                    string `json:"dbPath,omitempty"`
 	PreferXForwardedForHeader bool
+	RefreshInterval           string `json:"refreshInterval"`
 }
 
 // CreateConfig creates the default plugin configuration.
 func CreateConfig() *Config {
 	return &Config{
-		DBPath: DefaultDBPath,
+		DBPath:          DefaultDBPath,
+		RefreshInterval: DefaultRefreshInterval,
 	}
 }
 
@@ -37,16 +42,26 @@ type TraefikGeoIP2 struct {
 	next                      http.Handler
 	name                      string
 	preferXForwardedForHeader bool
+	refreshInterval           string
+	dbPath                    string
 }
 
 // New created a new TraefikGeoIP2 plugin.
 func New(_ context.Context, next http.Handler, cfg *Config, name string) (http.Handler, error) {
+
+	if cfg.RefreshInterval != "0" {
+		// when change the dynamic config need reload geoDB
+		ResetLookup()
+		log.Printf("[geoip2] DB refreshInterval: refreshInterval=%s", cfg.RefreshInterval)
+	}
 	if _, err := os.Stat(cfg.DBPath); err != nil {
 		log.Printf("[geoip2] DB not found: db=%s, name=%s, err=%v", cfg.DBPath, name, err)
 		return &TraefikGeoIP2{
 			next:                      next,
 			name:                      name,
 			preferXForwardedForHeader: cfg.PreferXForwardedForHeader,
+			refreshInterval:           cfg.RefreshInterval,
+			dbPath:                    cfg.DBPath,
 		}, nil
 	}
 
@@ -69,12 +84,67 @@ func New(_ context.Context, next http.Handler, cfg *Config, name string) (http.H
 			log.Printf("[geoip2] lookup DB initialized: db=%s, name=%s, lookup=%v", cfg.DBPath, name, lookup)
 		}
 	}
-
-	return &TraefikGeoIP2{
+	geo := &TraefikGeoIP2{
 		next:                      next,
 		name:                      name,
 		preferXForwardedForHeader: cfg.PreferXForwardedForHeader,
-	}, nil
+		refreshInterval:           cfg.RefreshInterval,
+		dbPath:                    cfg.DBPath,
+	}
+	//disable refresh
+	if cfg.RefreshInterval != "0" {
+		go geo.refreshDB()
+	} else {
+		if ticker != nil {
+			//stop old ticker when change config to "0" from other value
+			ticker.Stop()
+		}
+	}
+	return geo, nil
+	//return &TraefikGeoIP2{
+	//	next:                      next,
+	//	name:                      name,
+	//	preferXForwardedForHeader: cfg.PreferXForwardedForHeader,
+	//}, nil
+}
+
+func (g *TraefikGeoIP2) refreshDB() {
+	if ticker != nil {
+		//stop old ticker
+		ticker.Stop()
+	}
+	interval, err := time.ParseDuration(g.refreshInterval)
+	if err != nil {
+		log.Printf("[geoip2] Config refreshInterval error , has been replaced with '1h': refreshInterval=%s, err=%v", g.refreshInterval, err)
+		interval, err = time.ParseDuration("1h")
+	}
+	ticker = time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			if strings.Contains(g.dbPath, "City") {
+				rdr, err := geoip2.NewCityReaderFromFile(g.dbPath)
+				if err != nil {
+					log.Printf("[geoip2] lookup DB is not initialized: db=%s, name=%s, err=%v", g.dbPath, err)
+				} else {
+					lookup = CreateCityDBLookup(rdr)
+					log.Printf("[geoip2] lookup DB initialized: db=%s, name=%s, lookup=%v", g.dbPath, lookup)
+				}
+			}
+			if strings.Contains(g.dbPath, "Country") {
+				rdr, err := geoip2.NewCountryReaderFromFile(g.dbPath)
+				if err != nil {
+					log.Printf("Error refreshing GeoIP database: %s", err)
+					continue
+				} else {
+					lookup = CreateCountryDBLookup(rdr)
+					log.Printf("[geoip2] lookup DB initialized: db=%s, lookup=%v", g.dbPath, lookup)
+				}
+			}
+			log.Println("GeoIP database refreshed successfully")
+		}
+	}
 }
 
 func (mw *TraefikGeoIP2) ServeHTTP(reqWr http.ResponseWriter, req *http.Request) {
