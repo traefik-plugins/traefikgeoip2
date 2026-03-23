@@ -41,8 +41,10 @@ type TraefikGeoIP2 struct {
 
 // New created a new TraefikGeoIP2 plugin.
 func New(_ context.Context, next http.Handler, cfg *Config, name string) (http.Handler, error) {
-	if _, err := os.Stat(cfg.DBPath); err != nil {
+	_, err := os.Stat(cfg.DBPath)
+	if err != nil {
 		log.Printf("[geoip2] DB not found: db=%s, name=%s, err=%v", cfg.DBPath, name, err)
+
 		return &TraefikGeoIP2{
 			next:                      next,
 			name:                      name,
@@ -83,14 +85,17 @@ func (mw *TraefikGeoIP2) ServeHTTP(reqWr http.ResponseWriter, req *http.Request)
 		req.Header.Set(RegionHeader, Unknown)
 		req.Header.Set(CityHeader, Unknown)
 		req.Header.Set(IPAddressHeader, Unknown)
+
 		mw.next.ServeHTTP(reqWr, req)
+
 		return
 	}
 
 	ipStr := getClientIP(req, mw.preferXForwardedForHeader)
+
 	res, err := lookup(net.ParseIP(ipStr))
 	if err != nil {
-		log.Printf("[geoip2] Unable to find: ip=%s, err=%v", ipStr, err)
+		// log.Printf("[geoip2] Unable to find: ip=%s, err=%v", ipStr, err)
 		res = &GeoIPResult{
 			country: Unknown,
 			region:  Unknown,
@@ -118,9 +123,11 @@ func getClientIP(req *http.Request, preferXForwardedForHeader bool) string {
 
 	// If X-Forwarded-For is not present or retrieval is not enabled, fallback to RemoteAddr
 	remoteAddr := req.RemoteAddr
+
 	tmp, _, err := net.SplitHostPort(remoteAddr)
 	if err == nil {
 		remoteAddr = tmp
 	}
+
 	return remoteAddr
 }

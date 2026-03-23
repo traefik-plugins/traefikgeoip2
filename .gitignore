@@ -3,3 +3,4 @@
 *.code-workspace
 *.mmdb
 node_modules/
+vendor/

@@ -38,7 +38,7 @@ func readTraits(traits *Traits, buffer []byte, offset uint) (uint, error) {
 func readTraitsMap(traits *Traits, buffer []byte, mapSize uint, offset uint) (uint, error) {
 	var key []byte
 	var err error
-	for i := uint(0); i < mapSize; i++ {
+	for range mapSize {
 		key, offset, err = readMapKey(buffer, offset)
 		if err != nil {
 			return 0, err
@@ -96,6 +96,21 @@ func readTraitsMap(traits *Traits, buffer []byte, mapSize uint, offset uint) (ui
 			}
 		case "user_type":
 			traits.UserType, offset, err = readString(buffer, offset)
+			if err != nil {
+				return 0, err
+			}
+		case "mobile_country_code":
+			traits.MobileCountryCode, offset, err = readString(buffer, offset)
+			if err != nil {
+				return 0, err
+			}
+		case "mobile_network_code":
+			traits.MobileNetworkCode, offset, err = readString(buffer, offset)
+			if err != nil {
+				return 0, err
+			}
+		case "is_anycast":
+			traits.IsAnycast, offset, err = readBool(buffer, offset)
 			if err != nil {
 				return 0, err
 			}

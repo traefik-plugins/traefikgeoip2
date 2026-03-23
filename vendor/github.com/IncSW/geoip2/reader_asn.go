@@ -2,8 +2,8 @@ package geoip2
 
 import (
 	"errors"
-	"io/ioutil"
 	"net"
+	"os"
 	"strconv"
 )
 
@@ -12,7 +12,7 @@ type ASNReader struct {
 }
 
 func (r *ASNReader) Lookup(ip net.IP) (*ASN, error) {
-	offset, err := r.getOffset(ip)
+	offset, prefix, err := r.getOffsetWithPrefix(ip)
 	if err != nil {
 		return nil, err
 	}
@@ -21,6 +21,7 @@ func (r *ASNReader) Lookup(ip net.IP) (*ASN, error) {
 		return nil, err
 	}
 	result := &ASN{}
+	result.Network = getNetworkString(ip, prefix)
 	switch dataType {
 	case dataTypeMap:
 		_, err = readASNMap(result, r.decoderBuffer, size, offset)
@@ -54,7 +55,9 @@ func NewASNReader(buffer []byte) (*ASNReader, error) {
 	if err != nil {
 		return nil, err
 	}
-	if reader.metadata.DatabaseType != "GeoLite2-ASN" {
+	if reader.metadata.DatabaseType != "GeoLite2-ASN" &&
+		reader.metadata.DatabaseType != "DBIP-ASN-Lite" &&
+		reader.metadata.DatabaseType != "DBIP-ASN-Lite (compat=GeoLite2-ASN)" {
 		return nil, errors.New("wrong MaxMind DB ASN type: " + reader.metadata.DatabaseType)
 	}
 	return &ASNReader{
@@ -63,7 +66,7 @@ func NewASNReader(buffer []byte) (*ASNReader, error) {
 }
 
 func NewASNReaderFromFile(filename string) (*ASNReader, error) {
-	buffer, err := ioutil.ReadFile(filename)
+	buffer, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}

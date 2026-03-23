@@ -5,7 +5,7 @@ import "errors"
 func readAnonymousIPMap(result *AnonymousIP, buffer []byte, mapSize uint, offset uint) (uint, error) {
 	var key []byte
 	var err error
-	for i := uint(0); i < mapSize; i++ {
+	for range mapSize {
 		key, offset, err = readMapKey(buffer, offset)
 		if err != nil {
 			return 0, err
@@ -42,7 +42,7 @@ func readAnonymousIPMap(result *AnonymousIP, buffer []byte, mapSize uint, offset
 				return 0, err
 			}
 		default:
-			return 0, errors.New("unknown isp key: " + string(key))
+			return 0, errors.New("unknown anonymous ip key: " + string(key))
 		}
 	}
 	return offset, nil

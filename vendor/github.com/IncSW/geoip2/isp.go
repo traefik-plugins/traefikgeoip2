@@ -5,7 +5,7 @@ import "errors"
 func readISPMap(result *ISP, buffer []byte, mapSize uint, offset uint) (uint, error) {
 	var key []byte
 	var err error
-	for i := uint(0); i < mapSize; i++ {
+	for range mapSize {
 		key, offset, err = readMapKey(buffer, offset)
 		if err != nil {
 			return 0, err
@@ -28,6 +28,16 @@ func readISPMap(result *ISP, buffer []byte, mapSize uint, offset uint) (uint, er
 			}
 		case "organization":
 			result.Organization, offset, err = readString(buffer, offset)
+			if err != nil {
+				return 0, err
+			}
+		case "mobile_country_code":
+			result.MobileCountryCode, offset, err = readString(buffer, offset)
+			if err != nil {
+				return 0, err
+			}
+		case "mobile_network_code":
+			result.MobileNetworkCode, offset, err = readString(buffer, offset)
 			if err != nil {
 				return 0, err
 			}
