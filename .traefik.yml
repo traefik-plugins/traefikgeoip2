@@ -9,3 +9,9 @@ import: github.com/traefik-plugins/traefikgeoip2
 testData:
   dbPath: 'GeoLite2-Country.mmdb'
   preferXForwardedForHeader: false
+  privateIPCountry: 'XX'
+  privateIPRegion: 'XX'
+  privateIPCity: 'XX'
+  privateIPPostalCode: 'XX'
+  dbRefreshInterval: 0
+  logFilePath: ''

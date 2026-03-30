@@ -1,7 +1,5 @@
 run:
   timeout: 3m
-  skip-files: []
-  skip-dirs: []
 
 linters-settings:
   govet:
@@ -37,7 +35,6 @@ linters:
     - maligned # deprecated
     - nosnakecase # deprecated
     - scopelint # deprecated
-    - scopelint # deprecated
     - structcheck # deprecated
     - varcheck # deprecated
     - sqlclosecheck # not relevant (SQL)
@@ -55,10 +52,10 @@ linters:
     - exhaustruct
     - goerr113
     - wrapcheck
-    - ifshort
     - noctx
     - lll
-    - gomnd
+    - gomnd # renamed to mnd in v1.56
+    - mnd
     - forbidigo
     - varnamelen
 
