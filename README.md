@@ -69,6 +69,15 @@ spec:
   plugin:
     geoip2:
       dbPath: "/geoip2/GeoLite2-City.mmdb"
+      preferXForwardedForHeader: false
+      detectionMode: ALLOW
+      countryCodes: 
+        - "DE"
+        - "FR"
+        - "IT"
+      specificIps: 
+        - 127.0.0.1
+        - 10.0.0.0/8
 ```
 
 ## Configuration
@@ -79,11 +88,14 @@ Name | Description
 ---- | ----
 DbPath | **Required** Container path to GeoIP database.
 PreferXForwardedForHeader | Should `X-Forwarded-For` header be used to extract IP address. Default `false`.
+DetectionMode | `ALLOW` OR `DENY` all requests from IPs into `countryCodes` list or `specificIps` list; range accepted, Default `ALLOW`.
+CountryCodes | List of CountryCode formatted with `ISO 3166-1`, Default `[]`.
+SpecificIps | List of IP or range, Default `[]`.
 
 ## Development
 
 To run linter and tests execute this command
 
 ```sh
-just test
+make lint test
 ```

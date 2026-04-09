@@ -10,18 +10,24 @@ import (
 // Unknown constant for undefined data.
 const Unknown = "XX"
 
-// DefaultDBPath default GeoIP2 database path.
+// DefaultDBPath default Geoip2 database path.
 const DefaultDBPath = "GeoLite2-Country.mmdb"
+
+// DetectionModeAllow for ALLOW all requests from IPs into countries list or specific IP list, others will be forbid.
+const DetectionModeAllow = "ALLOW"
+
+// DetectionModeDeny for DENY all requests from IPs into countries list or specific IP list, others will be allow.
+const DetectionModeDeny = "DENY"
 
 const (
 	// CountryHeader country header name.
-	CountryHeader = "X-GeoIP2-Country"
+	CountryHeader = "X-Geoip2-Country"
 	// RegionHeader region header name.
-	RegionHeader = "X-GeoIP2-Region"
+	RegionHeader = "X-Geoip2-Region"
 	// CityHeader city header name.
-	CityHeader = "X-GeoIP2-City"
+	CityHeader = "X-Geoip2-City"
 	// IPAddressHeader city header name.
-	IPAddressHeader = "X-GeoIP2-IPAddress"
+	IPAddressHeader = "X-Geoip2-Ipaddress"
 )
 
 // GeoIPResult GeoIPResult.
@@ -41,17 +47,21 @@ func CreateCityDBLookup(rdr *geoip2.CityReader) LookupGeoIP2 {
 		if err != nil {
 			return nil, fmt.Errorf("%w", err)
 		}
+
 		retval := GeoIPResult{
 			country: rec.Country.ISOCode,
 			region:  Unknown,
 			city:    Unknown,
 		}
+
 		if city, ok := rec.City.Names["en"]; ok {
 			retval.city = city
 		}
+
 		if rec.Subdivisions != nil {
 			retval.region = rec.Subdivisions[0].ISOCode
 		}
+
 		return &retval, nil
 	}
 }
@@ -63,11 +73,13 @@ func CreateCountryDBLookup(rdr *geoip2.CountryReader) LookupGeoIP2 {
 		if err != nil {
 			return nil, fmt.Errorf("%w", err)
 		}
+
 		retval := GeoIPResult{
 			country: rec.Country.ISOCode,
 			region:  Unknown,
 			city:    Unknown,
 		}
+
 		return &retval, nil
 	}
 }
